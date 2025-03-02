@@ -25,7 +25,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           set -e  # Остановить выполнение при ошибке
-          cd ${{ secrets.WORK_DIR }}
+          mkdir -p ${{ secrets.WORK_DIR }} && cd ${{ secrets.WORK_DIR }}
 
           echo "Cloning repository if not exists..."
           if [ ! -d ".git" ]; then
