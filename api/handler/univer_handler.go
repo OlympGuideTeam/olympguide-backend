@@ -37,6 +37,7 @@ func (u *UniverHandler) GetUniver(c *gin.Context) {
 // @Tags Университеты
 // @Accept json
 // @Produce json
+// @Param benefit_in_olympiad_id query uint false "Фильтр: только университеты, в которые есть льготы для данной олимпиады"
 // @Param region_id query []string false "Фильтр по названию регионов" collectionFormat(multi)
 // @Param from_my_region query boolean false "Фильтр: только университеты из региона пользователя"
 // @Param search query string false "Поиск по названию или сокращенному названию"

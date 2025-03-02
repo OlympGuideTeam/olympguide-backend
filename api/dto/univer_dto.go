@@ -24,10 +24,11 @@ type UniversityShortResponse struct {
 
 // UniversityQueryParams представляет параметры запроса для поиска университетов.
 type UniversityQueryParams struct {
-	Regions      []string `form:"region"`         // Список регионов для фильтрации
-	FromMyRegion bool     `form:"from_my_region"` // Искать университеты только из региона пользователя
-	Search       string   `form:"search"`         // Поиск по названию или сокращенному названию
-	UserID       any      `swaggerignore:"true"`  // ID пользователя (не передаётся в запросе)
+	Regions        []string `form:"region"`                 // Список регионов для фильтрации
+	FromMyRegion   bool     `form:"from_my_region"`         // Искать университеты только из региона пользователя
+	Search         string   `form:"search"`                 // Поиск по названию или сокращенному названию
+	BenefitOlympID uint     `form:"benefit_in_olympiad_id"` // Только университеты, в которые есть льготы для данной олимпиады
+	UserID         any      `swaggerignore:"true"`          // ID пользователя (не передаётся в запросе)
 }
 
 type UniversityResponse struct {

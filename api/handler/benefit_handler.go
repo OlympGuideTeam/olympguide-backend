@@ -86,12 +86,13 @@ func (b *BenefitHandler) GetBenefitsByProgram(c *gin.Context) {
 // GetBenefitsByOlympiad
 // @Summary Получить льготы по олимпиаде
 // @Description Возвращает список льгот по программам для указанной олимпиады.
-// @Description Поддерживаются фильтры по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск и сортировка.
+// @Description Поддерживаются фильтры по вузу, по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск и сортировка.
 // @Description льготы сгруппированы по программам, сортировка внутри программы: сначала БВИ, сначала 1 степень.
 // @Tags Льготы по олимпиаде
 // @Accept json
 // @Produce json
 // @Param id path string true "Идентификатор олимпиады"
+// @Param university_id query uint false "Идентификатор университета"
 // @Param field query []string false "Фильтр по кодам направлений (01.03.04)"
 // @Param is_bvi query []bool false "Фильтр по BVI"
 // @Param min_diploma_level query []uint false "Фильтр по минимальному уровню диплома (1, 2, 3)"
