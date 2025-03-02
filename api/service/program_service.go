@@ -9,6 +9,7 @@ import (
 )
 
 type IProgramService interface {
+	GetProgramsByFieldID(fieldID string, userID any, params *dto.ProgramsByFieldQueryParams) ([]dto.ProgramResponse, error)
 	GetProgramsByFacultyID(facultyID string, userID any) ([]dto.ProgramShortResponse, error)
 	GetUniverProgramsByFaculty(univerID string, userID any, params *dto.ProgramTreeQueryParams) ([]dto.FacultyProgramTree, error)
 	GetUniverProgramsByField(univerID string, userID any, params *dto.ProgramTreeQueryParams) ([]dto.GroupProgramTree, error)
@@ -107,6 +108,18 @@ func (p *ProgramService) GetProgramsByFacultyID(facultyID string, userID any) ([
 	response := make([]dto.ProgramShortResponse, len(programs))
 	for i, program := range programs {
 		response[i] = *newProgramShortResponse(&program)
+	}
+	return response, nil
+}
+
+func (p *ProgramService) GetProgramsByFieldID(fieldID string, userID any, params *dto.ProgramsByFieldQueryParams) ([]dto.ProgramResponse, error) {
+	programs, err := p.programRepo.GetProgramsByFieldID(fieldID, userID, params)
+	if err != nil {
+		return nil, err
+	}
+	response := make([]dto.ProgramResponse, len(programs))
+	for i, program := range programs {
+		response[i] = *newProgramResponse(&program)
 	}
 	return response, nil
 }

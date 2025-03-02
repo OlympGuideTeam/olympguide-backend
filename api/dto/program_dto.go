@@ -43,3 +43,11 @@ type ProgramTreeQueryParams struct {
 	Subjects []string `form:"subject"`
 	Search   string   `form:"search"`
 }
+
+type ProgramsByFieldQueryParams struct {
+	University []string `form:"university"`
+	Search     string   `form:"search"`
+	Subjects   []string `form:"subject"`
+	Sort       string   `form:"sort"`
+	Order      string   `form:"order"`
+}

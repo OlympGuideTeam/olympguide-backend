@@ -49,6 +49,8 @@ func (b *PgBenefitRepo) GetBenefitsByOlympiad(olympiadID string, params *dto.Ben
 	var benefits []model.Benefit
 	query := b.db.Debug().
 		Joins("JOIN olympguide.educational_program AS pr ON pr.program_id = benefit.program_id").
+		Joins("JOIN olympguide.field_of_study AS fos ON fos.field_id = pr.field_id").
+		Joins("JOIN olympguide.university AS u ON u.university_id = pr.university_id").
 		Preload("FullScoreSubjects").
 		Preload("ConfirmationSubjects").
 		Preload("ConfSubjRel").
@@ -84,8 +86,8 @@ func applyBenefitByProgramSorting(query *gorm.DB, sort, order string) *gorm.DB {
 
 func applyBenefitByOlympiadSorting(query *gorm.DB, sort, order string) *gorm.DB {
 	allowedSortFields := map[string]string{
-		"field":      "pr.field.code",
-		"university": "pr.university.popularity",
+		"field":      "fos.code",
+		"university": "u.popularity",
 	}
 	var resultOrder string
 	if value, exist := allowedSortFields[sort]; exist {
@@ -128,11 +130,11 @@ func applyBenefitByProgramFilters(query *gorm.DB, levels, profiles []string, sea
 
 func applyBenefitsByOlympiadFilters(query *gorm.DB, fields []string, search string) *gorm.DB {
 	if len(fields) > 0 {
-		query = query.Where("pr.field.code IN (?)", fields)
+		query = query.Where("fos.code IN (?)", fields)
 	}
 	if search != "" {
 		query = query.Where("pr.name ILIKE ? "+
-			"OR pr.university.name", "%"+search+"%", "%"+search+"%")
+			"OR u.name", "%"+search+"%", "%"+search+"%")
 	}
 	return query
 }

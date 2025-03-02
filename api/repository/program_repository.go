@@ -8,6 +8,7 @@ import (
 
 type IProgramRepo interface {
 	GetProgramsByFacultyID(facultyID string, userID any) ([]model.Program, error)
+	GetProgramsByFieldID(fieldID string, userID any, params *dto.ProgramsByFieldQueryParams) ([]model.Program, error)
 	GetLikedPrograms(userID uint) ([]model.Program, error)
 	NewProgram(program *model.Program) (uint, error)
 	UpdateProgram(program *model.Program) error
@@ -53,6 +54,24 @@ func (p *PgProgramRepo) GetProgramsByFacultyID(facultyID string, userID any) ([]
 		Select("olympguide.educational_program.*, CASE WHEN lp.user_id IS NOT NULL THEN TRUE ELSE FALSE END as like").
 		Where("faculty_id = ?", facultyID).
 		Find(&programs).Error
+	return programs, err
+}
+
+func (p *PgProgramRepo) GetProgramsByFieldID(fieldID string, userID any, params *dto.ProgramsByFieldQueryParams) ([]model.Program, error) {
+	var programs []model.Program
+	query := p.db.Debug().
+		Preload("OptionalSubjects").
+		Preload("RequiredSubjects").
+		Preload("Field").
+		Preload("University").
+		Preload("University.Region").
+		Joins("LEFT JOIN olympguide.university AS u ON u.university_id = olympguide.educational_program.university_id").
+		Joins("LEFT JOIN olympguide.liked_programs lp ON lp.program_id = olympguide.educational_program.program_id AND lp.user_id = ?", userID).
+		Select("olympguide.educational_program.*, CASE WHEN lp.user_id IS NOT NULL THEN TRUE ELSE FALSE END as like").
+		Where("field_id = ?", fieldID)
+
+	applyProgramByFieldParams(query, params)
+	err := query.Find(&programs).Error
 	return programs, err
 }
 
@@ -163,12 +182,39 @@ func applyProgramTreeFilters(query *gorm.DB, params *dto.ProgramTreeQueryParams)
 		query = query.Where("olympguide.educational_program.name ILIKE ?", "%"+params.Search+"%")
 	}
 
-	if len(params.Subjects) > 0 {
+	query = applySubjectFilter(query, params.Subjects)
+	return query
+}
+
+func applyProgramByFieldParams(query *gorm.DB, params *dto.ProgramsByFieldQueryParams) *gorm.DB {
+	if params.Search != "" {
+		query = query.Where("olympguide.educational_program.name ILIKE ?", "%"+params.Search+"%")
+	}
+	if len(params.University) != 0 {
+		query = query.Where("u.name IN (?)", params.University)
+	}
+	query = applySubjectFilter(query, params.Subjects)
+
+	allowedSortFields := map[string]string{
+		"university": "u.popularity",
+	}
+
+	if value, exist := allowedSortFields[params.Sort]; exist {
+		if params.Order != "asc" && params.Order != "desc" {
+			params.Order = "asc"
+		}
+		return query.Order(value + " " + params.Order)
+	}
+	return query.Order("olympguide.educational_program.popularity DESC")
+}
+
+func applySubjectFilter(query *gorm.DB, subjects []string) *gorm.DB {
+	if len(subjects) > 0 {
 		query = query.Where(`NOT EXISTS (
 			SELECT 1 FROM olympguide.program_required_subjects prs
 			JOIN olympguide.subject rs ON rs.subject_id = prs.subject_id
 			WHERE prs.program_id = olympguide.educational_program.program_id AND rs.name NOT IN (?)
-		)`, params.Subjects)
+		)`, subjects)
 		query = query.Where(`NOT EXISTS (
 			SELECT 1 FROM olympguide.program_optional_subjects pos 
         	JOIN olympguide.subject os ON os.subject_id = pos.subject_id 
@@ -178,7 +224,7 @@ func applyProgramTreeFilters(query *gorm.DB, params *dto.ProgramTreeQueryParams)
         	JOIN olympguide.subject os ON os.subject_id = pos.subject_id 
         	WHERE pos.program_id = olympguide.educational_program.program_id 
         	AND os.name IN (?)
-    	)`, params.Subjects)
+    	)`, subjects)
 	}
 	return query
 }
