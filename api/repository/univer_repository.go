@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"api/dto"
 	"api/model"
 	"gorm.io/gorm"
 )
@@ -8,7 +9,7 @@ import (
 type IUniverRepo interface {
 	UniverExists(univerID uint) bool
 	GetUniver(universityID string, userID any) (*model.University, error)
-	GetUnivers(search string, regions []string, userID any) ([]model.University, error)
+	GetUnivers(params *dto.UniversityQueryParams) ([]model.University, error)
 	GetLikedUnivers(userID uint) ([]model.University, error)
 	NewUniver(univer *model.University) (uint, error)
 	UpdateUniver(univer *model.University) error
@@ -46,19 +47,30 @@ func (u *PgUniverRepo) GetUniver(universityID string, userID any) (*model.Univer
 	return &university, nil
 }
 
-func (u *PgUniverRepo) GetUnivers(search string, regions []string, userID any) ([]model.University, error) {
+func (u *PgUniverRepo) GetUnivers(params *dto.UniversityQueryParams) ([]model.University, error) {
 	var universities []model.University
 	query := u.db.Debug().Preload("Region").
 		Joins("LEFT JOIN olympguide.liked_universities lu "+
-			"ON lu.university_id = olympguide.university.university_id AND lu.user_id = ?", userID).
+			"ON lu.university_id = olympguide.university.university_id AND lu.user_id = ?", params.UserID).
 		Joins("LEFT JOIN olympguide.region r ON r.region_id = olympguide.university.region_id").
 		Select("olympguide.university.*, CASE WHEN lu.user_id IS NOT NULL THEN TRUE ELSE FALSE END as like")
-	if search != "" {
-		query = query.Where("name ILIKE ? OR short_name ILIKE ?", "%"+search+"%", "%"+search+"%")
+	if params.Search != "" {
+		query = query.Where("name ILIKE ? OR short_name ILIKE ?", "%"+params.Search+"%", "%"+params.Search+"%")
 	}
-	if len(regions) > 0 {
-		query = query.Where("r.name IN (?)", regions)
+
+	if len(params.Regions) > 0 {
+		query = query.Where("r.name IN (?)", params.Regions)
 	}
+
+	if params.BenefitOlympID > 0 {
+		query = query.Where("olympguide.university.university_id IN ("+
+			"SELECT DISTINCT u.university_id "+
+			"FROM olympguide.benefit AS b "+
+			"JOIN olympguide.educational_program AS pr ON pr.program_id = b.program_id "+
+			"JOIN olympguide.university AS u ON u.university_id = pr.university_id "+
+			"WHERE b.olympiad_id = ?)", params.BenefitOlympID)
+	}
+
 	if err := query.Order("popularity DESC").Find(&universities).Error; err != nil {
 		return nil, err
 	}

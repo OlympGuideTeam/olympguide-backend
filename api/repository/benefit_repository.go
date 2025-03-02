@@ -60,7 +60,7 @@ func (b *PgBenefitRepo) GetBenefitsByOlympiad(olympiadID string, params *dto.Ben
 		Where("olympiad_id = ?", olympiadID)
 	applyBenefitByOlympiadSorting(query, params.Sort, params.Order)
 	applyBenefitBaseFilters(query, &params.BenefitBaseQueryParams)
-	applyBenefitsByOlympiadFilters(query, params.Fields, params.Search)
+	applyBenefitsByOlympiadFilters(query, params.Fields, params.Search, params.UniversityID)
 	err := query.Find(&benefits).Error
 	return benefits, err
 }
@@ -128,13 +128,16 @@ func applyBenefitByProgramFilters(query *gorm.DB, levels, profiles []string, sea
 	return query
 }
 
-func applyBenefitsByOlympiadFilters(query *gorm.DB, fields []string, search string) *gorm.DB {
+func applyBenefitsByOlympiadFilters(query *gorm.DB, fields []string, search string, universityID uint) *gorm.DB {
 	if len(fields) > 0 {
 		query = query.Where("fos.code IN (?)", fields)
 	}
 	if search != "" {
 		query = query.Where("pr.name ILIKE ? "+
 			"OR u.name", "%"+search+"%", "%"+search+"%")
+	}
+	if universityID > 0 {
+		query = query.Where("pr.university_id = ?", universityID)
 	}
 	return query
 }

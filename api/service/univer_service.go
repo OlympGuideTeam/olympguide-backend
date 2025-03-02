@@ -44,7 +44,7 @@ func (u *UniverService) GetUnivers(params *dto.UniversityQueryParams) ([]dto.Uni
 		params.Regions = []string{region.Name}
 	}
 
-	univers, err := u.univerRepo.GetUnivers(params.Search, params.Regions, params.UserID)
+	univers, err := u.univerRepo.GetUnivers(params)
 	if err != nil {
 		return nil, err
 	}
