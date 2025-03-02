@@ -148,6 +148,35 @@ definitions:
       program:
         $ref: '#/definitions/dto.ProgramBenefitInfo'
     type: object
+  dto.ProgramResponse:
+    properties:
+      budget_places:
+        type: integer
+      cost:
+        type: integer
+      field:
+        type: string
+      like:
+        type: boolean
+      link:
+        type: string
+      name:
+        type: string
+      optional_subjects:
+        items:
+          type: string
+        type: array
+      paid_places:
+        type: integer
+      program_id:
+        type: integer
+      required_subjects:
+        items:
+          type: string
+        type: array
+      university:
+        $ref: '#/definitions/dto.UniversityForProgramInfo'
+    type: object
   dto.ProgramShortResponse:
     properties:
       budget_places:
@@ -172,6 +201,19 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  dto.UniversityForProgramInfo:
+    properties:
+      logo:
+        type: string
+      name:
+        type: string
+      region:
+        type: string
+      short_name:
+        type: string
+      university_id:
+        type: integer
     type: object
   dto.UniversityShortResponse:
     description: Ответ API с краткими сведениями об университете.
@@ -222,7 +264,6 @@ info:
   contact:
     email: olympguide@mail.ru
     name: Support Team
-  description: Это API для продажи олимпгайда за 30 лямов
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT

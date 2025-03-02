@@ -103,6 +103,7 @@ func (rt *Router) setupUniverRoutes() {
 func (rt *Router) setupFieldRoutes() {
 	rt.api.GET("/fields", rt.handlers.Field.GetGroups)
 	rt.api.GET("/field/:id", rt.handlers.Field.GetField)
+	rt.api.GET("/field/:id/programs", rt.handlers.Program.GetProgramsByField)
 }
 
 func (rt *Router) setupOlympRoutes() {

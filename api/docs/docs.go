@@ -801,6 +801,50 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ProgramResponse": {
+            "type": "object",
+            "properties": {
+                "budget_places": {
+                    "type": "integer"
+                },
+                "cost": {
+                    "type": "integer"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "like": {
+                    "type": "boolean"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "optional_subjects": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "paid_places": {
+                    "type": "integer"
+                },
+                "program_id": {
+                    "type": "integer"
+                },
+                "required_subjects": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "university": {
+                    "$ref": "#/definitions/dto.UniversityForProgramInfo"
+                }
+            }
+        },
         "dto.ProgramShortResponse": {
             "type": "object",
             "properties": {
@@ -836,6 +880,26 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "dto.UniversityForProgramInfo": {
+            "type": "object",
+            "properties": {
+                "logo": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "short_name": {
+                    "type": "string"
+                },
+                "university_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -908,7 +972,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "OlympGuide API",
-	Description:      "Это API для продажи олимпгайда за 30 лямов",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

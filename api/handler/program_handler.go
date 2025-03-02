@@ -30,6 +30,40 @@ func (p *ProgramHandler) GetProgramsByFaculty(c *gin.Context) {
 	c.JSON(http.StatusOK, programs)
 }
 
+// GetProgramsByField
+// @Summary Получить все образовательные программы по направлению подготовки
+// @Description Возвращает список программ по направлению, с возможностью сортировки и фильтрации по предметам, университету и поисковому запросу
+// @Tags Программы по направлению подготовки
+// @Accept json
+// @Produce json
+// @Param id path string true "ID направления"
+// @Param degree query []string false "Названия университетов (например: Университет Иннополис)"
+// @Param subject query []string false "Предметы ЕГЭ (например: Русский язык, Математика)"
+// @Param search query string false "Поиск по названию программы (например: Программная инженерия)"
+// @Param sort query string false "Поле сортировки программ (university - по популярности университета), по умолчанию по убыванию популярности программы."
+// @Param order query string false "Порядок сортировки (asc или desc)"
+// @Success 200 {object} []dto.ProgramResponse
+// @Failure 400 {object} errs.AppError "Некорректные параметры запроса"
+// @Failure 500 {object} errs.AppError "Внутренняя ошибка сервера"
+// @Router /university/{id}/programs/by-faculty [get]
+func (p *ProgramHandler) GetProgramsByField(c *gin.Context) {
+	var queryParams dto.ProgramsByFieldQueryParams
+	if err := c.ShouldBindQuery(&queryParams); err != nil {
+		errs.HandleError(c, errs.InvalidRequest)
+		return
+	}
+
+	fieldID := c.Param("id")
+	userID, _ := c.Get(constants.ContextUserID)
+
+	programs, err := p.programService.GetProgramsByFieldID(fieldID, userID, &queryParams)
+	if err != nil {
+		errs.HandleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, programs)
+}
+
 // GetUniverProgramsWithFaculty
 // @Summary Получить образовательные программы университета, сгруппированные по факультетам
 // @Description Возвращает список программ, распределенных по факультетам, с возможностью фильтрации по предметам, уровню образования и поисковому запросу
