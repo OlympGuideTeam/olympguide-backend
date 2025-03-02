@@ -27,12 +27,22 @@ jobs:
           set -e  # Остановить выполнение при ошибке
           cd ${{ secrets.WORK_DIR }}
 
+          echo "Cloning repository if not exists..."
+          if [ ! -d ".git" ]; then
+            git clone https://github.com/${{ github.repository }}.git .
+          fi
+          
           echo "Pulling latest code..."
           git fetch origin main
-          git reset --hard origin/main
-
+          CHANGED_FILES=$(git diff --name-only HEAD origin/main)
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changes detected, skipping deployment."
+            exit 0
+          fi
           echo "${{ secrets.DOT_ENV }}" > .env
-    
+          git switch main
+          git pull
+          
           echo "Restarting application with Docker Compose..."
           docker-compose down
           docker-compose pull
