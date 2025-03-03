@@ -55,7 +55,7 @@ func (u *PgUniverRepo) GetUnivers(params *dto.UniversityQueryParams) ([]model.Un
 		Joins("LEFT JOIN olympguide.region r ON r.region_id = olympguide.university.region_id").
 		Select("olympguide.university.*, CASE WHEN lu.user_id IS NOT NULL THEN TRUE ELSE FALSE END as like")
 	if params.Search != "" {
-		query = query.Where("name ILIKE ? OR short_name ILIKE ?", "%"+params.Search+"%", "%"+params.Search+"%")
+		query = query.Where("olympguide.university.name ILIKE ? OR short_name ILIKE ?", "%"+params.Search+"%", "%"+params.Search+"%")
 	}
 
 	if len(params.Regions) > 0 {
