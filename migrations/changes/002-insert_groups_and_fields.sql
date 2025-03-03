@@ -56,7 +56,7 @@ INSERT INTO olympguide.group_of_fields (group_id, name, code) VALUES (54, 'ИЗ�
 INSERT INTO olympguide.group_of_fields (group_id, name, code) VALUES (55, 'ЭКРАННЫЕ ИСКУССТВА', '55.00.00');
 INSERT INTO olympguide.group_of_fields (group_id, name, code) VALUES (56, 'ВОЕННОЕ УПРАВЛЕНИЕ', '56.00.00');
 INSERT INTO olympguide.group_of_fields (group_id, name, code) VALUES (57, 'ОБЕСПЕЧЕНИЕ ГОСУДАРСТВЕННОЙ БЕЗОПАСНОСТИ', '57.00.00');
-
+INSERT INTO olympguide.group_of_fields (group_id, name, code) VALUES (58, 'ВОСТОКОВЕДЕНИЕ И АФРИКАНИСТИКА', '58.00.00');
 
 INSERT INTO olympguide.field_of_study (field_id, name, code, degree, group_id) VALUES (1, 'Математика', '01.03.01', 'Бакалавриат', 1);
 INSERT INTO olympguide.field_of_study (field_id, name, code, degree, group_id) VALUES (2, 'Прикладная математика и информатика', '01.03.02', 'Бакалавриат', 1);
@@ -372,3 +372,4 @@ INSERT INTO olympguide.field_of_study (field_id, name, code, degree, group_id) V
 INSERT INTO olympguide.field_of_study (field_id, name, code, degree, group_id) VALUES (312, 'Пограничная деятельность', '57.05.01', 'Специалитет', 57);
 INSERT INTO olympguide.field_of_study (field_id, name, code, degree, group_id) VALUES (313, 'Государственная охрана', '57.05.02', 'Специалитет', 57);
 INSERT INTO olympguide.field_of_study (field_id, name, code, degree, group_id) VALUES (314, 'Технологическое обеспечение национальной безопасности и обороны', '57.05.03', 'Специалитет', 57);
+INSERT INTO olympguide.field_of_study (field_id, name, code, degree, group_id) VALUES (315, 'Востоковедение и африканистика', '58.03.01', 'Бакалавриат', 58);
