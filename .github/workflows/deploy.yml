@@ -25,12 +25,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           set -e  # Остановить выполнение при ошибке
-          mkdir -p ${{ secrets.WORK_DIR }} && cd ${{ secrets.WORK_DIR }}
-
-          echo "Cloning repository if not exists..."
-          if [ ! -d ".git" ]; then
-            git clone https://github.com/${{ github.repository }}.git .
-          fi
+          cd ${{ secrets.WORK_DIR }}
           
           echo "Pulling latest code..."
           git fetch origin main
