@@ -22,6 +22,79 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/field/{id}/programs": {
+            "get": {
+                "description": "Возвращает список программ по направлению, сгруппированные по университету, с возможностью фильтрации по предметам, университету и поисковому запросу",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Программы по направлению подготовки"
+                ],
+                "summary": "Получить все образовательные программы по направлению подготовки, сгруппированные по университетам",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID направления",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Названия университетов (например: Университет Иннополис)",
+                        "name": "degree",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Предметы ЕГЭ (например: Русский язык, Математика)",
+                        "name": "subject",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск по названию программы (например: Программная инженерия)",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.UniverProgramTree"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные параметры запроса",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/fields": {
             "get": {
                 "description": "Возвращает список групп и их направлений с возможностью фильтрации по уровню образования и поиску.",
@@ -267,6 +340,69 @@ const docTemplate = `{
                 }
             }
         },
+        "/olympiads/{id}/universities": {
+            "get": {
+                "description": "Возвращает список университетов с учетом фильтров поиска и сортировкой по убыванию популярности.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Университеты"
+                ],
+                "summary": "Получение университетов, в которые олимпиада даёт льготы.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Университеты, в которые есть льготы для данной олимпиады",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Фильтр по названию регионов",
+                        "name": "region_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск по названию или сокращенному названию",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список университетов",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.UniversityShortResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/programs/{id}/benefits": {
             "get": {
                 "description": "Возвращает список льгот по олимпиадам для указанной образовательной программы.\nПоддерживаются фильтры по уровням олимпиады, профилям олимпиады, признаку BVI, минимальному уровню диплома,\nминимальному классу, а также поиск и сортировка. Льготы сгруппированы по олимпиадам, сортировка внутри программы: сначала БВИ, сначала 1 степень.",
@@ -384,7 +520,7 @@ const docTemplate = `{
         },
         "/universities": {
             "get": {
-                "description": "Возвращает список университетов с учетом фильтров поиска и сортировкой по убыванию популярности.",
+                "description": "Возвращает список университетов с фильтрами поиска, регионами и сортировкой по убыванию популярности.",
                 "consumes": [
                     "application/json"
                 ],
@@ -396,12 +532,6 @@ const docTemplate = `{
                 ],
                 "summary": "Получение списка университетов",
                 "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Фильтр: только университеты, в которые есть льготы для данной олимпиады",
-                        "name": "benefit_in_olympiad_id",
-                        "in": "query"
-                    },
                     {
                         "type": "array",
                         "items": {
@@ -813,7 +943,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ProgramResponse": {
+        "dto.ProgramShortResponse": {
             "type": "object",
             "properties": {
                 "budget_places": {
@@ -851,51 +981,24 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
-                },
-                "university": {
-                    "$ref": "#/definitions/dto.UniversityForProgramInfo"
                 }
             }
         },
-        "dto.ProgramShortResponse": {
+        "dto.UniverProgramTree": {
             "type": "object",
             "properties": {
-                "budget_places": {
-                    "type": "integer"
-                },
-                "cost": {
-                    "type": "integer"
-                },
-                "field": {
-                    "type": "string"
-                },
-                "like": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "optional_subjects": {
+                "programs": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/dto.ProgramShortResponse"
                     }
                 },
-                "paid_places": {
-                    "type": "integer"
-                },
-                "program_id": {
-                    "type": "integer"
-                },
-                "required_subjects": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "univer": {
+                    "$ref": "#/definitions/dto.UniversityProgramInfo"
                 }
             }
         },
-        "dto.UniversityForProgramInfo": {
+        "dto.UniversityProgramInfo": {
             "type": "object",
             "properties": {
                 "logo": {

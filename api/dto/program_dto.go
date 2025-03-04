@@ -9,13 +9,13 @@ type ProgramShortResponse struct {
 	Cost             uint     `json:"cost"`
 	RequiredSubjects []string `json:"required_subjects"`
 	OptionalSubjects []string `json:"optional_subjects"`
+	Link             string   `json:"link"`
 	Like             bool     `json:"like"`
 }
 
 type ProgramResponse struct {
 	ProgramShortResponse
-	University UniversityForProgramInfo `json:"university"`
-	Link       string                   `json:"link"`
+	University UniversityProgramInfo `json:"university"`
 }
 
 type ProgramRequest struct {
@@ -48,6 +48,4 @@ type ProgramsByFieldQueryParams struct {
 	University []string `form:"university"`
 	Search     string   `form:"search"`
 	Subjects   []string `form:"subject"`
-	Sort       string   `form:"sort"`
-	Order      string   `form:"order"`
 }
