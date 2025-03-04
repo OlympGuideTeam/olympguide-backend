@@ -9,7 +9,8 @@ import (
 
 type IUniverService interface {
 	GetUniver(universityID string, userID any) (*dto.UniversityResponse, error)
-	GetUnivers(params *dto.UniversityQueryParams) ([]dto.UniversityShortResponse, error)
+	GetUnivers(params *dto.UniverBaseParams) ([]dto.UniversityShortResponse, error)
+	GetBenefitUnivers(params *dto.UniverBaseParams, olympiadID string) ([]dto.UniversityShortResponse, error)
 	GetLikedUnivers(userID uint) ([]dto.UniversityShortResponse, error)
 	NewUniver(request *dto.UniversityRequest) (uint, error)
 	UpdateUniver(request *dto.UniversityRequest, universityID string) (uint, error)
@@ -35,7 +36,7 @@ func (u *UniverService) GetUniver(universityID string, userID any) (*dto.Univers
 	return newUniverResponse(univer), nil
 }
 
-func (u *UniverService) GetUnivers(params *dto.UniversityQueryParams) ([]dto.UniversityShortResponse, error) {
+func (u *UniverService) GetUnivers(params *dto.UniverBaseParams) ([]dto.UniversityShortResponse, error) {
 	if uintUserID, ok := params.UserID.(uint); ok && params.FromMyRegion {
 		region, err := u.regionRepo.GetUserRegion(uintUserID)
 		if err != nil {
@@ -45,6 +46,23 @@ func (u *UniverService) GetUnivers(params *dto.UniversityQueryParams) ([]dto.Uni
 	}
 
 	univers, err := u.univerRepo.GetUnivers(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return newUniversShortResponse(univers), nil
+}
+
+func (u *UniverService) GetBenefitUnivers(params *dto.UniverBaseParams, olympiadID string) ([]dto.UniversityShortResponse, error) {
+	if uintUserID, ok := params.UserID.(uint); ok && params.FromMyRegion {
+		region, err := u.regionRepo.GetUserRegion(uintUserID)
+		if err != nil {
+			return nil, err
+		}
+		params.Regions = []string{region.Name}
+	}
+
+	univers, err := u.univerRepo.GetBenefitUnivers(params, olympiadID)
 	if err != nil {
 		return nil, err
 	}

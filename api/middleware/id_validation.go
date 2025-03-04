@@ -6,13 +6,14 @@ import (
 	"strconv"
 )
 
-func (mw *Mw) ValidateID() gin.HandlerFunc {
+func (mw *Mw) ValidateNumericParams() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id := c.Param("id")
-		if _, err := strconv.Atoi(id); id != "" && err != nil {
-			errs.HandleError(c, errs.InvalidID)
-			c.Abort()
-			return
+		for _, param := range c.Params {
+			if _, err := strconv.Atoi(param.Value); err != nil {
+				errs.HandleError(c, errs.InvalidID) // Используем обработчик ошибок
+				c.Abort()
+				return
+			}
 		}
 		c.Next()
 	}

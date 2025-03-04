@@ -9,13 +9,13 @@ import (
 )
 
 type IProgramService interface {
-	GetProgramsByFieldID(fieldID string, userID any, params *dto.ProgramsByFieldQueryParams) ([]dto.ProgramResponse, error)
+	GetProgramsByFieldID(fieldID string, userID any, params *dto.ProgramsByFieldQueryParams) ([]dto.UniverProgramTree, error)
 	GetProgramsByFacultyID(facultyID string, userID any) ([]dto.ProgramShortResponse, error)
 	GetUniverProgramsByFaculty(univerID string, userID any, params *dto.ProgramTreeQueryParams) ([]dto.FacultyProgramTree, error)
 	GetUniverProgramsByField(univerID string, userID any, params *dto.ProgramTreeQueryParams) ([]dto.GroupProgramTree, error)
 	LikeProgram(programID string, userID uint) (bool, error)
 	DislikeProgram(programID string, userID uint) (bool, error)
-	GetLikedPrograms(userID uint) ([]dto.ProgramResponse, error)
+	GetLikedPrograms(userID uint) ([]dto.UniverProgramTree, error)
 	GetProgram(programID string, userID any) (*dto.ProgramResponse, error)
 	NewProgram(request *dto.ProgramRequest) (uint, error)
 }
@@ -42,16 +42,12 @@ func (p *ProgramService) GetProgram(programID string, userID any) (*dto.ProgramR
 	return newProgramResponse(program), nil
 }
 
-func (p *ProgramService) GetLikedPrograms(userID uint) ([]dto.ProgramResponse, error) {
+func (p *ProgramService) GetLikedPrograms(userID uint) ([]dto.UniverProgramTree, error) {
 	programs, err := p.programRepo.GetLikedPrograms(userID)
 	if err != nil {
 		return nil, err
 	}
-	response := make([]dto.ProgramResponse, len(programs))
-	for i, program := range programs {
-		response[i] = *newProgramResponse(&program)
-	}
-	return response, nil
+	return newUniverProgramTree(programs), nil
 }
 
 func (p *ProgramService) NewProgram(request *dto.ProgramRequest) (uint, error) {
@@ -112,16 +108,12 @@ func (p *ProgramService) GetProgramsByFacultyID(facultyID string, userID any) ([
 	return response, nil
 }
 
-func (p *ProgramService) GetProgramsByFieldID(fieldID string, userID any, params *dto.ProgramsByFieldQueryParams) ([]dto.ProgramResponse, error) {
+func (p *ProgramService) GetProgramsByFieldID(fieldID string, userID any, params *dto.ProgramsByFieldQueryParams) ([]dto.UniverProgramTree, error) {
 	programs, err := p.programRepo.GetProgramsByFieldID(fieldID, userID, params)
 	if err != nil {
 		return nil, err
 	}
-	response := make([]dto.ProgramResponse, len(programs))
-	for i, program := range programs {
-		response[i] = *newProgramResponse(&program)
-	}
-	return response, nil
+	return newUniverProgramTree(programs), nil
 }
 
 func (p *ProgramService) GetUniverProgramsByFaculty(univerID string, userID any, params *dto.ProgramTreeQueryParams) ([]dto.FacultyProgramTree, error) {
@@ -176,7 +168,7 @@ func newProgramResponse(program *model.Program) *dto.ProgramResponse {
 
 	return &dto.ProgramResponse{
 		ProgramShortResponse: *newProgramShortResponse(program),
-		University: dto.UniversityForProgramInfo{
+		University: dto.UniversityProgramInfo{
 			UniversityID: program.UniversityID,
 			Name:         program.University.Name,
 			ShortName:    program.University.ShortName,
@@ -253,6 +245,37 @@ func newGroupProgramTree(programs []model.Program) []dto.GroupProgramTree {
 				GroupID: program.Field.GroupID,
 				Name:    program.Field.Name,
 				Code:    program.Field.Group.Code,
+			}
+			result = append(result, tree)
+			currentTree = &result[len(result)-1]
+		}
+
+		if currentTree == nil {
+			continue
+		}
+
+		currentTree.Programs = append(currentTree.Programs, *newProgramShortResponse(&program))
+	}
+
+	return result
+}
+
+func newUniverProgramTree(programs []model.Program) []dto.UniverProgramTree {
+	var result []dto.UniverProgramTree
+	var currentTree *dto.UniverProgramTree
+	var currentUniverID uint
+
+	for _, program := range programs {
+		if program.UniversityID != currentUniverID {
+			currentUniverID = program.UniversityID
+			tree := dto.UniverProgramTree{
+				Univer: dto.UniversityProgramInfo{
+					UniversityID: program.UniversityID,
+					Name:         program.University.Name,
+					ShortName:    program.University.ShortName,
+					Region:       program.University.Region.Name,
+					Logo:         program.University.Logo,
+				},
 			}
 			result = append(result, tree)
 			currentTree = &result[len(result)-1]

@@ -148,35 +148,6 @@ definitions:
       program:
         $ref: '#/definitions/dto.ProgramBenefitInfo'
     type: object
-  dto.ProgramResponse:
-    properties:
-      budget_places:
-        type: integer
-      cost:
-        type: integer
-      field:
-        type: string
-      like:
-        type: boolean
-      link:
-        type: string
-      name:
-        type: string
-      optional_subjects:
-        items:
-          type: string
-        type: array
-      paid_places:
-        type: integer
-      program_id:
-        type: integer
-      required_subjects:
-        items:
-          type: string
-        type: array
-      university:
-        $ref: '#/definitions/dto.UniversityForProgramInfo'
-    type: object
   dto.ProgramShortResponse:
     properties:
       budget_places:
@@ -202,7 +173,16 @@ definitions:
           type: string
         type: array
     type: object
-  dto.UniversityForProgramInfo:
+  dto.UniverProgramTree:
+    properties:
+      programs:
+        items:
+          $ref: '#/definitions/dto.ProgramShortResponse'
+        type: array
+      univer:
+        $ref: '#/definitions/dto.UniversityProgramInfo'
+    type: object
+  dto.UniversityProgramInfo:
     properties:
       logo:
         type: string
@@ -270,6 +250,57 @@ info:
   title: OlympGuide API
   version: "1.0"
 paths:
+  /field/{id}/programs:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список программ по направлению, сгруппированные по университету,
+        с возможностью фильтрации по предметам, университету и поисковому запросу
+      parameters:
+      - description: ID направления
+        in: path
+        name: id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: 'Названия университетов (например: Университет Иннополис)'
+        in: query
+        items:
+          type: string
+        name: degree
+        type: array
+      - collectionFormat: csv
+        description: 'Предметы ЕГЭ (например: Русский язык, Математика)'
+        in: query
+        items:
+          type: string
+        name: subject
+        type: array
+      - description: 'Поиск по названию программы (например: Программная инженерия)'
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.UniverProgramTree'
+            type: array
+        "400":
+          description: Некорректные параметры запроса
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: Получить все образовательные программы по направлению подготовки, сгруппированные
+        по университетам
+      tags:
+      - Программы по направлению подготовки
   /fields:
     get:
       consumes:
@@ -442,6 +473,49 @@ paths:
       summary: Получить льготы по олимпиаде
       tags:
       - Льготы по олимпиаде
+  /olympiads/{id}/universities:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список университетов с учетом фильтров поиска и сортировкой
+        по убыванию популярности.
+      parameters:
+      - description: Университеты, в которые есть льготы для данной олимпиады
+        in: path
+        name: id
+        required: true
+        type: integer
+      - collectionFormat: multi
+        description: Фильтр по названию регионов
+        in: query
+        items:
+          type: string
+        name: region_id
+        type: array
+      - description: Поиск по названию или сокращенному названию
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список университетов
+          schema:
+            items:
+              $ref: '#/definitions/dto.UniversityShortResponse'
+            type: array
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: Получение университетов, в которые олимпиада даёт льготы.
+      tags:
+      - Университеты
   /programs/{id}/benefits:
     get:
       consumes:
@@ -528,14 +602,9 @@ paths:
     get:
       consumes:
       - application/json
-      description: Возвращает список университетов с учетом фильтров поиска и сортировкой
-        по убыванию популярности.
+      description: Возвращает список университетов с фильтрами поиска, регионами и
+        сортировкой по убыванию популярности.
       parameters:
-      - description: 'Фильтр: только университеты, в которые есть льготы для данной
-          олимпиады'
-        in: query
-        name: benefit_in_olympiad_id
-        type: integer
       - collectionFormat: multi
         description: Фильтр по названию регионов
         in: query

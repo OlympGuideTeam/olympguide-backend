@@ -113,6 +113,7 @@ func (rt *Router) setupOlympRoutes() {
 	{
 		olympiadWithID.GET("/", rt.handlers.Olymp.GetOlympiad)
 		olympiadWithID.GET("/benefits", rt.handlers.Benefit.GetBenefitsByOlympiad)
+		olympiadWithID.GET("/universities", rt.handlers.Univer.GetBenefitUnivers)
 	}
 }
 

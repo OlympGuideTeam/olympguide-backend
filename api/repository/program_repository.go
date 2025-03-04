@@ -117,7 +117,9 @@ func (p *PgProgramRepo) GetLikedPrograms(userID uint) ([]model.Program, error) {
 		Preload("University").
 		Preload("University.Region").
 		Joins("LEFT JOIN olympguide.liked_programs lp ON lp.program_id = olympguide.educational_program.program_id AND lp.user_id = ?", userID).
+		Joins("LEFT JOIN olympguide.university u ON u.university_id = olympguide.educational_program.university_id").
 		Where("lp.user_id IS NOT NULL").
+		Order("u.popularity DESC, olympguide.educational_program.popularity DESC").
 		Select("olympguide.educational_program.*, TRUE as like").
 		Find(&programs).Error
 	if err != nil {
@@ -194,18 +196,7 @@ func applyProgramByFieldParams(query *gorm.DB, params *dto.ProgramsByFieldQueryP
 		query = query.Where("u.name IN (?)", params.University)
 	}
 	query = applySubjectFilter(query, params.Subjects)
-
-	allowedSortFields := map[string]string{
-		"university": "u.popularity",
-	}
-
-	if value, exist := allowedSortFields[params.Sort]; exist {
-		if params.Order != "asc" && params.Order != "desc" {
-			params.Order = "asc"
-		}
-		return query.Order(value + " " + params.Order)
-	}
-	return query.Order("olympguide.educational_program.popularity DESC")
+	return query.Order("u.popularity DESC, olympguide.educational_program.popularity DESC")
 }
 
 func applySubjectFilter(query *gorm.DB, subjects []string) *gorm.DB {

@@ -14,8 +14,8 @@ type ProgramShortResponse struct {
 
 type ProgramResponse struct {
 	ProgramShortResponse
-	University UniversityForProgramInfo `json:"university"`
-	Link       string                   `json:"link"`
+	University UniversityProgramInfo `json:"university"`
+	Link       string                `json:"link"`
 }
 
 type ProgramRequest struct {
@@ -48,6 +48,4 @@ type ProgramsByFieldQueryParams struct {
 	University []string `form:"university"`
 	Search     string   `form:"search"`
 	Subjects   []string `form:"subject"`
-	Sort       string   `form:"sort"`
-	Order      string   `form:"order"`
 }

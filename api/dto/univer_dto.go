@@ -22,13 +22,12 @@ type UniversityShortResponse struct {
 	Like         bool   `json:"like" example:"true"`                                   // Лайкнут ли университет пользователем
 }
 
-// UniversityQueryParams представляет параметры запроса для поиска университетов.
-type UniversityQueryParams struct {
-	Regions        []string `form:"region"`                 // Список регионов для фильтрации
-	FromMyRegion   bool     `form:"from_my_region"`         // Искать университеты только из региона пользователя
-	Search         string   `form:"search"`                 // Поиск по названию или сокращенному названию
-	BenefitOlympID uint     `form:"benefit_in_olympiad_id"` // Только университеты, в которые есть льготы для данной олимпиады
-	UserID         any      `swaggerignore:"true"`          // ID пользователя (не передаётся в запросе)
+// UniverBaseParams представляет параметры запроса для поиска университетов.
+type UniverBaseParams struct {
+	Regions      []string `form:"region"`         // Список регионов для фильтрации
+	FromMyRegion bool     `form:"from_my_region"` // Искать университеты только из региона пользователя
+	Search       string   `form:"search"`         // Поиск по названию или сокращенному названию
+	UserID       any      `swaggerignore:"true"`  // ID пользователя (не передаётся в запросе)
 }
 
 type UniversityResponse struct {
@@ -38,10 +37,15 @@ type UniversityResponse struct {
 	UniversityShortResponse
 }
 
-type UniversityForProgramInfo struct {
+type UniversityProgramInfo struct {
 	UniversityID uint   `json:"university_id"`
 	Name         string `json:"name"`
 	ShortName    string `json:"short_name"`
 	Region       string `json:"region"`
 	Logo         string `json:"logo"`
+}
+
+type UniverProgramTree struct {
+	Univer   UniversityProgramInfo  `json:"univer"`
+	Programs []ProgramShortResponse `json:"programs"`
 }
