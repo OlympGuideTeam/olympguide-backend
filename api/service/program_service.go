@@ -149,6 +149,7 @@ func newProgramShortResponse(program *model.Program) *dto.ProgramShortResponse {
 		BudgetPlaces:     program.BudgetPlaces,
 		PaidPlaces:       program.PaidPlaces,
 		Cost:             program.Cost,
+		Link:             program.Link,
 		Like:             program.Like,
 		RequiredSubjects: requiredSubjects,
 		OptionalSubjects: optionalSubjects,
@@ -175,7 +176,6 @@ func newProgramResponse(program *model.Program) *dto.ProgramResponse {
 			Region:       program.University.Region.Name,
 			Logo:         program.University.Logo,
 		},
-		Link: program.Link,
 	}
 }
 

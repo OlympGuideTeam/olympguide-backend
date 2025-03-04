@@ -158,6 +158,8 @@ definitions:
         type: string
       like:
         type: boolean
+      link:
+        type: string
       name:
         type: string
       optional_subjects:

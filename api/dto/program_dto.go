@@ -9,13 +9,13 @@ type ProgramShortResponse struct {
 	Cost             uint     `json:"cost"`
 	RequiredSubjects []string `json:"required_subjects"`
 	OptionalSubjects []string `json:"optional_subjects"`
+	Link             string   `json:"link"`
 	Like             bool     `json:"like"`
 }
 
 type ProgramResponse struct {
 	ProgramShortResponse
 	University UniversityProgramInfo `json:"university"`
-	Link       string                `json:"link"`
 }
 
 type ProgramRequest struct {

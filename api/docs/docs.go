@@ -958,6 +958,9 @@ const docTemplate = `{
                 "like": {
                     "type": "boolean"
                 },
+                "link": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },

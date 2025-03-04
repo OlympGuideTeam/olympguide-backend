@@ -50,7 +50,7 @@ func (rt *Router) setupRoutes() {
 	rt.api.Use(sessions.Sessions("session", rt.store))
 	rt.api.Use(rt.mw.PrometheusMetrics())
 	rt.api.Use(rt.mw.SessionMiddleware())
-	rt.api.Use(rt.mw.ValidateID())
+	rt.api.Use(rt.mw.ValidateNumericParams())
 
 	rt.engine.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	rt.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
