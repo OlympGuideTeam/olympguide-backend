@@ -50,7 +50,7 @@ const docTemplate = `{
                         },
                         "collectionFormat": "csv",
                         "description": "Названия университетов (например: Университет Иннополис)",
-                        "name": "degree",
+                        "name": "university",
                         "in": "query"
                     },
                     {
