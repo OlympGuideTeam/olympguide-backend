@@ -269,7 +269,7 @@ paths:
         in: query
         items:
           type: string
-        name: degree
+        name: university
         type: array
       - collectionFormat: csv
         description: 'Предметы ЕГЭ (например: Русский язык, Математика)'

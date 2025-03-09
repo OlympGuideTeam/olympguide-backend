@@ -37,7 +37,7 @@ func (p *ProgramHandler) GetProgramsByFaculty(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "ID направления"
-// @Param degree query []string false "Названия университетов (например: Университет Иннополис)"
+// @Param university query []string false "Названия университетов (например: Университет Иннополис)"
 // @Param subject query []string false "Предметы ЕГЭ (например: Русский язык, Математика)"
 // @Param search query string false "Поиск по названию программы (например: Программная инженерия)"
 // @Success 200 {object} []dto.UniverProgramTree
