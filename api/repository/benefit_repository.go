@@ -134,7 +134,7 @@ func applyBenefitsByOlympiadFilters(query *gorm.DB, fields []string, search stri
 	}
 	if search != "" {
 		query = query.Where("pr.name ILIKE ? "+
-			"OR u.name", "%"+search+"%", "%"+search+"%")
+			"OR u.name ILIKE ? OR fos.code ILIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%")
 	}
 	if universityID > 0 {
 		query = query.Where("pr.university_id = ?", universityID)

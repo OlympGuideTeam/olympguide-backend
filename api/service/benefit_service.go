@@ -114,10 +114,11 @@ func newProgramBenefitTrees(benefits []model.Benefit) []dto.ProgramBenefitTree {
 			currentProgramID = b.ProgramID
 			tree := dto.ProgramBenefitTree{
 				Program: dto.ProgramBenefitInfo{
-					ProgramID:       b.Program.ProgramID,
-					Name:            b.Program.Name,
-					Field:           b.Program.Field.Code,
-					UniverShortName: b.Program.University.ShortName,
+					ProgramID:    b.Program.ProgramID,
+					Name:         b.Program.Name,
+					Field:        b.Program.Field.Code,
+					UniShortName: b.Program.University.ShortName,
+					UniversityID: b.Program.UniversityID,
 				},
 			}
 			result = append(result, tree)

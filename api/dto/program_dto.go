@@ -32,10 +32,11 @@ type ProgramRequest struct {
 }
 
 type ProgramBenefitInfo struct {
-	ProgramID       uint   `json:"program_id"`
-	Name            string `json:"name"`
-	Field           string `json:"field"`
-	UniverShortName string `json:"university"`
+	ProgramID    uint   `json:"program_id"`
+	Name         string `json:"name"`
+	Field        string `json:"field"`
+	UniShortName string `json:"university"`
+	UniversityID uint   `json:"university_id"`
 }
 
 type ProgramTreeQueryParams struct {
