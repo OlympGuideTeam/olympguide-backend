@@ -35,6 +35,7 @@ func (f *PgFieldRepo) GetGroups(search string, degrees []string) ([]model.GroupF
 		if search != "" {
 			db = db.Where("name ILIKE ? OR code ILIKE ?", "%"+search+"%", "%"+search+"%")
 		}
+		db = db.Order("field_id")
 		return db
 	}).Find(&groups)
 	if err := query.Error; err != nil {
