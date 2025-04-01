@@ -46,6 +46,9 @@ func (b *BenefitService) GetBenefitsByOlympiad(olympiadID string, request *dto.B
 	return newProgramBenefitTrees(benefits), nil
 }
 
+//func (b *BenefitService) GetBenefitsByDiplomas(diplomaID string, request *dto.DiplomaBenefitsQueryParams) ([]dto.DiplomaBenefitTree, error) {
+//}
+
 func newBenefitModel(request *dto.BenefitRequest) *model.Benefit {
 	benefit := model.Benefit{
 		ProgramID:       request.ProgramID,

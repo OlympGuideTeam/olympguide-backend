@@ -4,13 +4,15 @@ import (
 	"api/dto"
 	"api/model"
 	"gorm.io/gorm"
+	"strings"
 )
 
 type IUniverRepo interface {
 	UniverExists(univerID uint) bool
 	GetUniver(universityID string, userID any) (*model.University, error)
 	GetUnivers(params *dto.UniverBaseParams) ([]model.University, error)
-	GetBenefitUnivers(params *dto.UniverBaseParams, olympiadID string) ([]model.University, error)
+	GetBenefitByOlympUnivers(params *dto.UniverBaseParams, olympiadID string) ([]model.University, error)
+	GetBenefitByDiplomasUnivers(params *dto.UniverBaseParams, diplomas []model.Diploma) ([]model.University, error)
 	GetLikedUnivers(userID uint) ([]model.University, error)
 	NewUniver(univer *model.University) (uint, error)
 	UpdateUniver(univer *model.University) error
@@ -57,7 +59,7 @@ func (u *PgUniverRepo) GetUnivers(params *dto.UniverBaseParams) ([]model.Univers
 	return universities, nil
 }
 
-func (u *PgUniverRepo) GetBenefitUnivers(params *dto.UniverBaseParams, olympiadID string) ([]model.University, error) {
+func (u *PgUniverRepo) GetBenefitByOlympUnivers(params *dto.UniverBaseParams, olympiadID string) ([]model.University, error) {
 	var universities []model.University
 	query := u.buildUniversQuery(params).Where("olympguide.university.university_id IN ("+
 		"SELECT DISTINCT u.university_id "+
@@ -65,6 +67,36 @@ func (u *PgUniverRepo) GetBenefitUnivers(params *dto.UniverBaseParams, olympiadI
 		"JOIN olympguide.educational_program AS pr ON pr.program_id = b.program_id "+
 		"JOIN olympguide.university AS u ON u.university_id = pr.university_id "+
 		"WHERE b.olympiad_id = ?)", olympiadID)
+
+	if err := query.Order("popularity DESC").Find(&universities).Error; err != nil {
+		return nil, err
+	}
+	return universities, nil
+}
+
+func (u *PgUniverRepo) GetBenefitByDiplomasUnivers(params *dto.UniverBaseParams, diplomas []model.Diploma) ([]model.University, error) {
+	var universities []model.University
+
+	if len(diplomas) == 0 {
+		return []model.University{}, nil
+	}
+
+	var conditions []string
+	var queryParams []interface{}
+	for _, diploma := range diplomas {
+		conditions = append(conditions, "(b.min_class <= ? AND b.min_diploma_level <= ? AND b.olympiad_id = ?)")
+		queryParams = append(queryParams, diploma.Class, diploma.Level, diploma.OlympiadID)
+	}
+
+	whereClause := strings.Join(conditions, " OR ")
+	subQuery := "SELECT DISTINCT u.university_id " +
+		"FROM olympguide.benefit AS b " +
+		"JOIN olympguide.educational_program AS pr ON pr.program_id = b.program_id " +
+		"JOIN olympguide.university AS u ON u.university_id = pr.university_id " +
+		"WHERE " + whereClause
+
+	query := u.buildUniversQuery(params).
+		Where("olympguide.university.university_id IN ("+subQuery+")", queryParams...)
 
 	if err := query.Order("popularity DESC").Find(&universities).Error; err != nil {
 		return nil, err

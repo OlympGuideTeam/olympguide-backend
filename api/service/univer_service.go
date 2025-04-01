@@ -10,7 +10,9 @@ import (
 type IUniverService interface {
 	GetUniver(universityID string, userID any) (*dto.UniversityResponse, error)
 	GetUnivers(params *dto.UniverBaseParams) ([]dto.UniversityShortResponse, error)
-	GetBenefitUnivers(params *dto.UniverBaseParams, olympiadID string) ([]dto.UniversityShortResponse, error)
+	GetBenefitByOlympUnivers(params *dto.UniverBaseParams, olympiadID string) ([]dto.UniversityShortResponse, error)
+	GetDiplomaUnivers(params *dto.UniverBaseParams, diplomaID string) ([]dto.UniversityShortResponse, error)
+	GetUserDiplomasUnivers(params *dto.UniverBaseParams) ([]dto.UniversityShortResponse, error)
 	GetLikedUnivers(userID uint) ([]dto.UniversityShortResponse, error)
 	NewUniver(request *dto.UniversityRequest) (uint, error)
 	UpdateUniver(request *dto.UniversityRequest, universityID string) (uint, error)
@@ -20,12 +22,16 @@ type IUniverService interface {
 }
 
 type UniverService struct {
-	univerRepo repository.IUniverRepo
-	regionRepo repository.IRegionRepo
+	univerRepo  repository.IUniverRepo
+	regionRepo  repository.IRegionRepo
+	diplomaRepo repository.IDiplomaRepo
 }
 
-func NewUniverService(univerRepo repository.IUniverRepo, regionRepo repository.IRegionRepo) *UniverService {
-	return &UniverService{univerRepo: univerRepo, regionRepo: regionRepo}
+func NewUniverService(
+	univerRepo repository.IUniverRepo,
+	regionRepo repository.IRegionRepo,
+	diplomaRepo repository.IDiplomaRepo) *UniverService {
+	return &UniverService{univerRepo: univerRepo, regionRepo: regionRepo, diplomaRepo: diplomaRepo}
 }
 
 func (u *UniverService) GetUniver(universityID string, userID any) (*dto.UniversityResponse, error) {
@@ -53,7 +59,7 @@ func (u *UniverService) GetUnivers(params *dto.UniverBaseParams) ([]dto.Universi
 	return newUniversShortResponse(univers), nil
 }
 
-func (u *UniverService) GetBenefitUnivers(params *dto.UniverBaseParams, olympiadID string) ([]dto.UniversityShortResponse, error) {
+func (u *UniverService) GetBenefitByOlympUnivers(params *dto.UniverBaseParams, olympiadID string) ([]dto.UniversityShortResponse, error) {
 	if uintUserID, ok := params.UserID.(uint); ok && params.FromMyRegion {
 		region, err := u.regionRepo.GetUserRegion(uintUserID)
 		if err != nil {
@@ -62,11 +68,54 @@ func (u *UniverService) GetBenefitUnivers(params *dto.UniverBaseParams, olympiad
 		params.Regions = []string{region.Name}
 	}
 
-	univers, err := u.univerRepo.GetBenefitUnivers(params, olympiadID)
+	univers, err := u.univerRepo.GetBenefitByOlympUnivers(params, olympiadID)
+	if err != nil {
+		return nil, err
+	}
+	return newUniversShortResponse(univers), nil
+}
+
+func (u *UniverService) GetDiplomaUnivers(params *dto.UniverBaseParams, diplomaID string) ([]dto.UniversityShortResponse, error) {
+	diploma, err := u.diplomaRepo.GetDiplomaByID(diplomaID)
 	if err != nil {
 		return nil, err
 	}
 
+	if uintUserID, ok := params.UserID.(uint); ok && params.FromMyRegion {
+		region, err := u.regionRepo.GetUserRegion(uintUserID)
+		if err != nil {
+			return nil, err
+		}
+		params.Regions = []string{region.Name}
+	}
+
+	univers, err := u.univerRepo.GetBenefitByDiplomasUnivers(params, []model.Diploma{*diploma})
+	if err != nil {
+		return nil, err
+	}
+	return newUniversShortResponse(univers), nil
+}
+
+func (u *UniverService) GetUserDiplomasUnivers(params *dto.UniverBaseParams) ([]dto.UniversityShortResponse, error) {
+	uintUserID, ok := params.UserID.(uint)
+
+	if ok && params.FromMyRegion {
+		region, err := u.regionRepo.GetUserRegion(uintUserID)
+		if err != nil {
+			return nil, err
+		}
+		params.Regions = []string{region.Name}
+	}
+
+	diplomas, err := u.diplomaRepo.GetDiplomasByUserID(uintUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	univers, err := u.univerRepo.GetBenefitByDiplomasUnivers(params, diplomas)
+	if err != nil {
+		return nil, err
+	}
 	return newUniversShortResponse(univers), nil
 }
 

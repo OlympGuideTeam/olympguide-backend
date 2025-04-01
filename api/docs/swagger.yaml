@@ -138,6 +138,8 @@ definitions:
         type: integer
       university:
         type: string
+      university_id:
+        type: integer
     type: object
   dto.ProgramBenefitTree:
     properties:
@@ -482,7 +484,7 @@ paths:
       description: Возвращает список университетов с учетом фильтров поиска и сортировкой
         по убыванию популярности.
       parameters:
-      - description: Университеты, в которые есть льготы для данной олимпиады
+      - description: ID олимпиады
         in: path
         name: id
         required: true
@@ -745,4 +747,85 @@ paths:
         направлениям подготовки
       tags:
       - Программы в университете с группировкой
+  /user/diploma/{id}/universities:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список университетов с учетом фильтров поиска и сортировкой
+        по убыванию популярности.
+      parameters:
+      - description: ID диплома
+        in: path
+        name: id
+        required: true
+        type: integer
+      - collectionFormat: multi
+        description: Фильтр по названию регионов
+        in: query
+        items:
+          type: string
+        name: region_id
+        type: array
+      - description: Поиск по названию или сокращенному названию
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список университетов
+          schema:
+            items:
+              $ref: '#/definitions/dto.UniversityShortResponse'
+            type: array
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: Получение университетов, в которые диплом даёт льготы.
+      tags:
+      - Университеты
+  /user/diplomas/universities:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список университетов с учетом фильтров поиска и сортировкой
+        по убыванию популярности.
+      parameters:
+      - collectionFormat: multi
+        description: Фильтр по названию регионов
+        in: query
+        items:
+          type: string
+        name: region_id
+        type: array
+      - description: Поиск по названию или сокращенному названию
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список университетов
+          schema:
+            items:
+              $ref: '#/definitions/dto.UniversityShortResponse'
+            type: array
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: Получение университетов, в которые дипломы пользователя дают льготы.
+      tags:
+      - Университеты
 swagger: "2.0"
