@@ -61,21 +61,53 @@ func (u *UniverHandler) GetUnivers(c *gin.Context) {
 	c.JSON(http.StatusOK, univers)
 }
 
-// GetBenefitUnivers
+// GetBenefitByOlympUnivers
 //
 // @Summary Получение университетов, в которые олимпиада даёт льготы.
 // @Description Возвращает список университетов с учетом фильтров поиска и сортировкой по убыванию популярности.
 // @Tags Университеты
 // @Accept json
 // @Produce json
-// @Param id path uint true "Университеты, в которые есть льготы для данной олимпиады"
+// @Param id path uint true "ID олимпиады"
 // @Param region_id query []string false "Фильтр по названию регионов" collectionFormat(multi)
 // @Param search query string false "Поиск по названию или сокращенному названию"
 // @Success 200 {array} dto.UniversityShortResponse "Список университетов"
 // @Failure 400 {object} errs.AppError "Некорректный запрос"
 // @Failure 500 {object} errs.AppError "Внутренняя ошибка сервера"
 // @Router /olympiads/{id}/universities [get]
-func (u *UniverHandler) GetBenefitUnivers(c *gin.Context) {
+func (u *UniverHandler) GetBenefitByOlympUnivers(c *gin.Context) {
+	var queryParams dto.UniverBaseParams
+	if err := c.ShouldBindQuery(&queryParams); err != nil {
+		errs.HandleError(c, errs.InvalidRequest)
+		return
+	}
+	queryParams.UserID, _ = c.Get(constants.ContextUserID)
+	olympiadID := c.Param("id")
+
+	univers, err := u.univerService.GetBenefitByOlympUnivers(&queryParams, olympiadID)
+	if err != nil {
+		errs.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, univers)
+}
+
+// GetDiplomaUnivers
+//
+// @Summary Получение университетов, в которые диплом даёт льготы.
+// @Description Возвращает список университетов с учетом фильтров поиска и сортировкой по убыванию популярности.
+// @Tags Университеты
+// @Accept json
+// @Produce json
+// @Param id path uint true "ID диплома"
+// @Param region_id query []string false "Фильтр по названию регионов" collectionFormat(multi)
+// @Param search query string false "Поиск по названию или сокращенному названию"
+// @Success 200 {array} dto.UniversityShortResponse "Список университетов"
+// @Failure 400 {object} errs.AppError "Некорректный запрос"
+// @Failure 500 {object} errs.AppError "Внутренняя ошибка сервера"
+// @Router /user/diploma/{id}/universities [get]
+func (u *UniverHandler) GetDiplomaUnivers(c *gin.Context) {
 	var queryParams dto.UniverBaseParams
 	if err := c.ShouldBindQuery(&queryParams); err != nil {
 		errs.HandleError(c, errs.InvalidRequest)
@@ -84,7 +116,37 @@ func (u *UniverHandler) GetBenefitUnivers(c *gin.Context) {
 	queryParams.UserID, _ = c.Get(constants.ContextUserID)
 	universityID := c.Param("id")
 
-	univers, err := u.univerService.GetBenefitUnivers(&queryParams, universityID)
+	univers, err := u.univerService.GetDiplomaUnivers(&queryParams, universityID)
+	if err != nil {
+		errs.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, univers)
+}
+
+// GetUserDiplomasUnivers
+//
+// @Summary Получение университетов, в которые дипломы пользователя дают льготы.
+// @Description Возвращает список университетов с учетом фильтров поиска и сортировкой по убыванию популярности.
+// @Tags Университеты
+// @Accept json
+// @Produce json
+// @Param region_id query []string false "Фильтр по названию регионов" collectionFormat(multi)
+// @Param search query string false "Поиск по названию или сокращенному названию"
+// @Success 200 {array} dto.UniversityShortResponse "Список университетов"
+// @Failure 400 {object} errs.AppError "Некорректный запрос"
+// @Failure 500 {object} errs.AppError "Внутренняя ошибка сервера"
+// @Router /user/diplomas/universities [get]
+func (u *UniverHandler) GetUserDiplomasUnivers(c *gin.Context) {
+	var queryParams dto.UniverBaseParams
+	if err := c.ShouldBindQuery(&queryParams); err != nil {
+		errs.HandleError(c, errs.InvalidRequest)
+		return
+	}
+	queryParams.UserID = c.MustGet(constants.ContextUserID)
+
+	univers, err := u.univerService.GetUserDiplomasUnivers(&queryParams)
 	if err != nil {
 		errs.HandleError(c, err)
 		return

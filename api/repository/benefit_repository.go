@@ -11,6 +11,7 @@ type IBenefitRepo interface {
 	DeleteBenefit(benefitID string) error
 	GetBenefitsByProgram(programID string, params *dto.BenefitByProgramQueryParams) ([]model.Benefit, error)
 	GetBenefitsByOlympiad(olympiadID string, params *dto.BenefitByOlympiadQueryParams) ([]model.Benefit, error)
+	//GetDiplomaBenefits(diploma *model.Diploma, params *dto.DiplomaBenefitsQueryParams) ([]model.Benefit, error)
 }
 
 type PgBenefitRepo struct {
@@ -28,6 +29,27 @@ func (b *PgBenefitRepo) NewBenefit(benefit *model.Benefit) error {
 func (b *PgBenefitRepo) DeleteBenefit(benefitID string) error {
 	return b.db.Delete(&model.Benefit{}, benefitID).Error
 }
+
+//func (b *PgBenefitRepo) GetDiplomaBenefits(diploma *model.Diploma, params *dto.DiplomaBenefitsQueryParams) ([]model.Benefit, error) {
+//	var benefits []model.Benefit
+//	query := b.db.
+//		Where("olympiad_id = ?", diploma.OlympiadID).
+//		Where("min_class <= ?", diploma.Class).
+//		Where("min_diploma_level <= ?", diploma.Level).
+//		Joins("JOIN olympguide.educational_program AS pr ON pr.program_id = benefit.program_id").
+//		Joins("JOIN olympguide.field_of_study AS fos ON fos.field_id = pr.field_id").
+//		Joins("JOIN olympguide.university AS u ON u.university_id = pr.university_id").
+//		Preload("FullScoreSubjects").
+//		Preload("ConfirmationSubjects").
+//		Preload("ConfSubjRel").
+//		Preload("Program").
+//		Preload("Program.Field").
+//		Preload("Program.University").
+//		Order("u.popularity DESC, fos.code ASC, pr.program_id ASC, is_bvi DESC")
+//
+//	err := query.Find(&benefits).Error
+//	return benefits, err
+//}
 
 func (b *PgBenefitRepo) GetBenefitsByProgram(programID string, params *dto.BenefitByProgramQueryParams) ([]model.Benefit, error) {
 	var benefits []model.Benefit

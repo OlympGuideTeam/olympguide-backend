@@ -57,7 +57,7 @@ func initHandlers(db *gorm.DB, redis *redis.Client) *handler.Handlers {
 	benefitRepo := repository.NewPgBenefitRepo(db)
 
 	authService := service.NewAuthService(codeRepo, userRepo, regionRepo)
-	univerService := service.NewUniverService(univerRepo, regionRepo)
+	univerService := service.NewUniverService(univerRepo, regionRepo, diplomaRepo)
 	fieldService := service.NewFieldService(fieldRepo)
 	olympService := service.NewOlympService(olympRepo)
 	metaService := service.NewMetaService(regionRepo, olympRepo, programRepo)

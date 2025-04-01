@@ -356,7 +356,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Университеты, в которые есть льготы для данной олимпиады",
+                        "description": "ID олимпиады",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -725,6 +725,125 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/diploma/{id}/universities": {
+            "get": {
+                "description": "Возвращает список университетов с учетом фильтров поиска и сортировкой по убыванию популярности.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Университеты"
+                ],
+                "summary": "Получение университетов, в которые диплом даёт льготы.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID диплома",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Фильтр по названию регионов",
+                        "name": "region_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск по названию или сокращенному названию",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список университетов",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.UniversityShortResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/diplomas/universities": {
+            "get": {
+                "description": "Возвращает список университетов с учетом фильтров поиска и сортировкой по убыванию популярности.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Университеты"
+                ],
+                "summary": "Получение университетов, в которые дипломы пользователя дают льготы.",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Фильтр по названию регионов",
+                        "name": "region_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск по названию или сокращенному названию",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список университетов",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.UniversityShortResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -926,6 +1045,9 @@ const docTemplate = `{
                 },
                 "university": {
                     "type": "string"
+                },
+                "university_id": {
+                    "type": "integer"
                 }
             }
         },
