@@ -16,4 +16,4 @@ def post_diploma(diploma: Diploma):
         "class": diploma.diploma_class,
         "level": diploma.level
     }
-    response = requests.post(url, json=payload, headers=HEADERS)
+    requests.post(url, json=payload, headers=HEADERS)
