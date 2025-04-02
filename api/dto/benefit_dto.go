@@ -46,7 +46,7 @@ type BenefitByProgramQueryParams struct {
 
 type BenefitByOlympiadQueryParams struct {
 	Fields       []string `form:"field"`
-	UniversityID uint     `form:"university_id"`
+	UniversityID uint     `form:"university_id" binding:"required"`
 	BenefitBaseQueryParams
 }
 

@@ -4,6 +4,7 @@ import (
 	"api/dto"
 	"api/model"
 	"api/repository"
+	"errors"
 )
 
 type IBenefitService interface {
@@ -11,14 +12,17 @@ type IBenefitService interface {
 	DeleteBenefit(benefitId string) error
 	GetBenefitsByProgram(programID string, request *dto.BenefitByProgramQueryParams) ([]dto.OlympiadBenefitTree, error)
 	GetBenefitsByOlympiad(olympiadID string, request *dto.BenefitByOlympiadQueryParams) ([]dto.ProgramBenefitTree, error)
+	GetBenefitsByDiploma(diplomaID string, request *dto.BenefitByOlympiadQueryParams) ([]dto.ProgramBenefitTree, error)
+	GetUserBenefits(userID any, request *dto.BenefitByOlympiadQueryParams) ([]dto.ProgramBenefitTree, error)
 }
 
 type BenefitService struct {
 	benefitRepo repository.IBenefitRepo
+	diplomaRepo repository.IDiplomaRepo
 }
 
-func NewBenefitService(benefitRepo repository.IBenefitRepo) *BenefitService {
-	return &BenefitService{benefitRepo: benefitRepo}
+func NewBenefitService(benefitRepo repository.IBenefitRepo, diplomaRepo repository.IDiplomaRepo) *BenefitService {
+	return &BenefitService{benefitRepo: benefitRepo, diplomaRepo: diplomaRepo}
 }
 
 func (b *BenefitService) NewBenefit(request *dto.BenefitRequest) error {
@@ -46,8 +50,36 @@ func (b *BenefitService) GetBenefitsByOlympiad(olympiadID string, request *dto.B
 	return newProgramBenefitTrees(benefits), nil
 }
 
-//func (b *BenefitService) GetBenefitsByDiplomas(diplomaID string, request *dto.DiplomaBenefitsQueryParams) ([]dto.DiplomaBenefitTree, error) {
-//}
+func (b *BenefitService) GetBenefitsByDiploma(diplomaID string, request *dto.BenefitByOlympiadQueryParams) ([]dto.ProgramBenefitTree, error) {
+	diploma, err := b.diplomaRepo.GetDiplomaByID(diplomaID)
+	if err != nil {
+		return nil, err
+	}
+
+	benefits, err := b.benefitRepo.GetBenefitsByDiplomas([]model.Diploma{*diploma}, request)
+	if err != nil {
+		return nil, err
+	}
+	return newProgramBenefitTrees(benefits), nil
+}
+
+func (b *BenefitService) GetUserBenefits(userID any, request *dto.BenefitByOlympiadQueryParams) ([]dto.ProgramBenefitTree, error) {
+	uintUserID, ok := userID.(uint)
+	if !ok {
+		return nil, errors.New("userID must be uint")
+	}
+
+	diplomas, err := b.diplomaRepo.GetDiplomasByUserID(uintUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	benefits, err := b.benefitRepo.GetBenefitsByDiplomas(diplomas, request)
+	if err != nil {
+		return nil, err
+	}
+	return newProgramBenefitTrees(benefits), nil
+}
 
 func newBenefitModel(request *dto.BenefitRequest) *model.Benefit {
 	benefit := model.Benefit{

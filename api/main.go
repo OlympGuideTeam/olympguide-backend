@@ -66,7 +66,7 @@ func initHandlers(db *gorm.DB, redis *redis.Client) *handler.Handlers {
 	facultyService := service.NewFacultyService(facultyRepo, univerRepo)
 	programService := service.NewProgramService(programRepo, univerRepo, facultyRepo, fieldRepo)
 	diplomaService := service.NewDiplomaService(diplomaRepo, userRepo, olympRepo)
-	benefitService := service.NewBenefitService(benefitRepo)
+	benefitService := service.NewBenefitService(benefitRepo, diplomaRepo)
 
 	return &handler.Handlers{
 		Auth:    handler.NewAuthHandler(authService),
