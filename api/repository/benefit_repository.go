@@ -75,7 +75,7 @@ func (b *PgBenefitRepo) GetBenefitsByDiplomas(diplomas []model.Diploma, params *
 			Exprs: []clause.Expression{
 				clause.Eq{Column: "olympiad_id", Value: diploma.OlympiadID},
 				clause.Lte{Column: "min_class", Value: diploma.Class},
-				clause.Lte{Column: "min_diploma_level", Value: diploma.Level},
+				clause.Gte{Column: "min_diploma_level", Value: diploma.Level},
 			},
 		})
 	}

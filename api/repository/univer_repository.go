@@ -84,7 +84,7 @@ func (u *PgUniverRepo) GetBenefitByDiplomasUnivers(params *dto.UniverBaseParams,
 	var conditions []string
 	var queryParams []interface{}
 	for _, diploma := range diplomas {
-		conditions = append(conditions, "(b.min_class <= ? AND b.min_diploma_level <= ? AND b.olympiad_id = ?)")
+		conditions = append(conditions, "(b.min_class <= ? AND b.min_diploma_level >= ? AND b.olympiad_id = ?)")
 		queryParams = append(queryParams, diploma.Class, diploma.Level, diploma.OlympiadID)
 	}
 
