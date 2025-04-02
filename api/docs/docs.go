@@ -231,7 +231,7 @@ const docTemplate = `{
         },
         "/olympiads/{id}/benefits": {
             "get": {
-                "description": "Возвращает список льгот по программам для указанной олимпиады.\nПоддерживаются фильтры по вузу, по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск и сортировка.\nльготы сгруппированы по программам, сортировка внутри программы: сначала БВИ, сначала 1 степень.",
+                "description": "Возвращает список льгот по программам для указанной олимпиады.\nПоддерживаются фильтры по вузу, по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск.\nЛьготы сгруппированы по программам, сортировка внутри программы: сначала БВИ, сначала 1 степень.\nПрограммы сортируются по коду направления подготовки.",
                 "consumes": [
                     "application/json"
                 ],
@@ -252,7 +252,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Идентификатор университета",
+                        "description": "Идентификатор университета (обязательный)",
                         "name": "university_id",
                         "in": "query"
                     },
@@ -300,18 +300,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Поиск по названию программы и названию университета",
                         "name": "search",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Поле сортировки программ (field - по коду, university - по популярности университета), по умолчанию по убыванию популярности программы.",
-                        "name": "sort",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Порядок сортировки (asc или desc)",
-                        "name": "order",
                         "in": "query"
                     }
                 ],
@@ -726,6 +714,105 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/diploma/{id}/benefits": {
+            "get": {
+                "description": "Возвращает список льгот по программам для указанного диплома.\nПоддерживаются фильтры по вузу, по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск.\nЛьготы сгруппированы по программам, сортировка внутри программы: сначала БВИ, сначала 1 степень.\nПрограммы сортируются по коду направления подготовки.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Льготы по диплому"
+                ],
+                "summary": "Получить льготы по диплому",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор диплома",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Идентификатор университета (обязательный)",
+                        "name": "university_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Фильтр по кодам направлений (01.03.04)",
+                        "name": "field",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "boolean"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Фильтр по BVI",
+                        "name": "is_bvi",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Фильтр по минимальному уровню диплома (1, 2, 3)",
+                        "name": "min_diploma_level",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Фильтр по минимальному классу (9, 10, 11)",
+                        "name": "min_class",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск по названию программы и названию университета",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список льгот, сгруппированных по программам",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ProgramBenefitTree"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/user/diploma/{id}/universities": {
             "get": {
                 "description": "Возвращает список университетов с учетом фильтров поиска и сортировкой по убыванию популярности.",
@@ -782,6 +869,98 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/diplomas/benefits": {
+            "get": {
+                "description": "Возвращает список льгот по программам для пользователя.\nПоддерживаются фильтры по вузу, по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск.\nЛьготы сгруппированы по программам, сортировка внутри программы: сначала БВИ, сначала 1 степень.\nПрограммы сортируются по коду направления подготовки.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Льготы пользователя"
+                ],
+                "summary": "Получить все льготы пользователя",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Идентификатор университета (обязательный)",
+                        "name": "university_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Фильтр по кодам направлений (01.03.04)",
+                        "name": "field",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "boolean"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Фильтр по BVI",
+                        "name": "is_bvi",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Фильтр по минимальному уровню диплома (1, 2, 3)",
+                        "name": "min_diploma_level",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Фильтр по минимальному классу (9, 10, 11)",
+                        "name": "min_class",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск по названию программы и названию университета",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список льгот, сгруппированных по программам",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ProgramBenefitTree"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/errs.AppError"
                         }

@@ -404,15 +404,16 @@ paths:
       - application/json
       description: |-
         Возвращает список льгот по программам для указанной олимпиады.
-        Поддерживаются фильтры по вузу, по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск и сортировка.
-        льготы сгруппированы по программам, сортировка внутри программы: сначала БВИ, сначала 1 степень.
+        Поддерживаются фильтры по вузу, по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск.
+        Льготы сгруппированы по программам, сортировка внутри программы: сначала БВИ, сначала 1 степень.
+        Программы сортируются по коду направления подготовки.
       parameters:
       - description: Идентификатор олимпиады
         in: path
         name: id
         required: true
         type: string
-      - description: Идентификатор университета
+      - description: Идентификатор университета (обязательный)
         in: query
         name: university_id
         type: integer
@@ -447,15 +448,6 @@ paths:
       - description: Поиск по названию программы и названию университета
         in: query
         name: search
-        type: string
-      - description: Поле сортировки программ (field - по коду, university - по популярности
-          университета), по умолчанию по убыванию популярности программы.
-        in: query
-        name: sort
-        type: string
-      - description: Порядок сортировки (asc или desc)
-        in: query
-        name: order
         type: string
       produces:
       - application/json
@@ -747,6 +739,77 @@ paths:
         направлениям подготовки
       tags:
       - Программы в университете с группировкой
+  /user/diploma/{id}/benefits:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Возвращает список льгот по программам для указанного диплома.
+        Поддерживаются фильтры по вузу, по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск.
+        Льготы сгруппированы по программам, сортировка внутри программы: сначала БВИ, сначала 1 степень.
+        Программы сортируются по коду направления подготовки.
+      parameters:
+      - description: Идентификатор диплома
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Идентификатор университета (обязательный)
+        in: query
+        name: university_id
+        type: integer
+      - collectionFormat: csv
+        description: Фильтр по кодам направлений (01.03.04)
+        in: query
+        items:
+          type: string
+        name: field
+        type: array
+      - collectionFormat: csv
+        description: Фильтр по BVI
+        in: query
+        items:
+          type: boolean
+        name: is_bvi
+        type: array
+      - collectionFormat: csv
+        description: Фильтр по минимальному уровню диплома (1, 2, 3)
+        in: query
+        items:
+          type: integer
+        name: min_diploma_level
+        type: array
+      - collectionFormat: csv
+        description: Фильтр по минимальному классу (9, 10, 11)
+        in: query
+        items:
+          type: integer
+        name: min_class
+        type: array
+      - description: Поиск по названию программы и названию университета
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список льгот, сгруппированных по программам
+          schema:
+            items:
+              $ref: '#/definitions/dto.ProgramBenefitTree'
+            type: array
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: Получить льготы по диплому
+      tags:
+      - Льготы по диплому
   /user/diploma/{id}/universities:
     get:
       consumes:
@@ -790,6 +853,72 @@ paths:
       summary: Получение университетов, в которые диплом даёт льготы.
       tags:
       - Университеты
+  /user/diplomas/benefits:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Возвращает список льгот по программам для пользователя.
+        Поддерживаются фильтры по вузу, по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск.
+        Льготы сгруппированы по программам, сортировка внутри программы: сначала БВИ, сначала 1 степень.
+        Программы сортируются по коду направления подготовки.
+      parameters:
+      - description: Идентификатор университета (обязательный)
+        in: query
+        name: university_id
+        type: integer
+      - collectionFormat: csv
+        description: Фильтр по кодам направлений (01.03.04)
+        in: query
+        items:
+          type: string
+        name: field
+        type: array
+      - collectionFormat: csv
+        description: Фильтр по BVI
+        in: query
+        items:
+          type: boolean
+        name: is_bvi
+        type: array
+      - collectionFormat: csv
+        description: Фильтр по минимальному уровню диплома (1, 2, 3)
+        in: query
+        items:
+          type: integer
+        name: min_diploma_level
+        type: array
+      - collectionFormat: csv
+        description: Фильтр по минимальному классу (9, 10, 11)
+        in: query
+        items:
+          type: integer
+        name: min_class
+        type: array
+      - description: Поиск по названию программы и названию университета
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список льгот, сгруппированных по программам
+          schema:
+            items:
+              $ref: '#/definitions/dto.ProgramBenefitTree'
+            type: array
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: Получить все льготы пользователя
+      tags:
+      - Льготы пользователя
   /user/diplomas/universities:
     get:
       consumes:
