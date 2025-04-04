@@ -12,11 +12,17 @@ import (
 )
 
 type AuthHandler struct {
-	authService service.IAuthService
+	authService       service.IAuthService
+	googleAuthService service.IGoogleAuthService
+	tokenService      service.ITokenService
 }
 
-func NewAuthHandler(authService service.IAuthService) *AuthHandler {
-	return &AuthHandler{authService: authService}
+func NewAuthHandler(
+	authService service.IAuthService,
+	googleAuthService service.IGoogleAuthService,
+	tokenService service.ITokenService,
+) *AuthHandler {
+	return &AuthHandler{authService: authService, googleAuthService: googleAuthService, tokenService: tokenService}
 }
 
 func (h *AuthHandler) SendCode(c *gin.Context) {
@@ -60,9 +66,9 @@ func (h *AuthHandler) SignUp(c *gin.Context) {
 		errs.HandleError(c, errs.InvalidRequest)
 		return
 	}
+	request.Email = c.MustGet(constants.ContextEmail).(string)
 
 	err := h.authService.SignUp(&request)
-
 	if err != nil {
 		errs.HandleError(c, err)
 		return
@@ -113,4 +119,64 @@ func (h *AuthHandler) CheckSession(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Authorized"})
+}
+
+func (h *AuthHandler) GoogleLogin(c *gin.Context) {
+	var req dto.GoogleAuthRequest
+	if err := c.ShouldBind(&req); err != nil {
+		errs.HandleError(c, errs.InvalidRequest)
+		return
+	}
+
+	user, err := h.googleAuthService.GoogleAuth(req.Token)
+	if err != nil {
+		errs.HandleError(c, err)
+		return
+	}
+
+	if user.ProfileComplete {
+		session := sessions.Default(c)
+		session.Set(constants.ContextUserID, user.UserID)
+		if err := session.Save(); err != nil {
+			errs.HandleError(c, err)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "Logged in"})
+		return
+	}
+
+	tempToken, err := h.tokenService.GenerateIDToken(user.UserID)
+	if err != nil {
+		errs.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "uncompleted registration",
+		"token":   tempToken,
+	})
+}
+
+func (h *AuthHandler) CompleteProfile(c *gin.Context) {
+	var req dto.CompleteProfileRequest
+	if err := c.ShouldBind(&req); err != nil {
+		errs.HandleError(c, errs.InvalidRequest)
+		return
+	}
+
+	userID := c.MustGet(constants.ContextUserID).(uint)
+
+	if err := h.googleAuthService.CompleteProfile(userID, &req); err != nil {
+		errs.HandleError(c, err)
+		return
+	}
+
+	session := sessions.Default(c)
+	session.Set(constants.ContextUserID, userID)
+	if err := session.Save(); err != nil {
+		errs.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Logged in"})
 }

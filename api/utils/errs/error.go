@@ -32,6 +32,12 @@ var (
 )
 
 var (
+	IncompleteRegistration = AppError{403, "IncompleteRegistration", "Incomplete registration", nil}
+	TokenExpired           = AppError{403, "TokenExpired", "Token expired", nil}
+	InvalidToken           = AppError{403, "InvalidToken", "Invalid token", nil}
+)
+
+var (
 	InvalidRequest  = AppError{400, "InvalidRequest", "Invalid request data", nil}
 	InvalidBirthday = AppError{400, "InvalidBirthday", "Invalid birthday format, use DD.MM.YYYY", nil}
 	InvalidPassword = AppError{400, "InvalidPassword", "Invalid password", nil}

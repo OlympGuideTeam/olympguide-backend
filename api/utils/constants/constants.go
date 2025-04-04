@@ -28,4 +28,10 @@ const (
 const (
 	ContextUserID   = "user_id"
 	ContextUniverID = "university_id"
+	ContextEmail    = "email"
+)
+
+const (
+	EmailTokenTTL = time.Minute * 15
+	IDTokenTTL    = time.Minute * 15
 )

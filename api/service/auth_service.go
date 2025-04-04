@@ -110,6 +110,10 @@ func (s *AuthService) Login(email, password string) (uint, error) {
 		return 0, errs.UserNotFound
 	}
 
+	if !user.ProfileComplete {
+		return 0, errs.IncompleteRegistration
+	}
+
 	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 		return 0, errs.InvalidPassword
 	}
@@ -132,12 +136,13 @@ func hashPassword(password string) (string, error) {
 
 func newUserModel(request *dto.SignUpRequest, pwdHash string, parseBirthday time.Time) *model.User {
 	return &model.User{
-		FirstName:    request.FirstName,
-		LastName:     request.LastName,
-		SecondName:   request.SecondName,
-		Email:        request.Email,
-		RegionID:     request.RegionID,
-		Birthday:     parseBirthday,
-		PasswordHash: pwdHash,
+		FirstName:       request.FirstName,
+		LastName:        request.LastName,
+		SecondName:      request.SecondName,
+		Email:           request.Email,
+		RegionID:        request.RegionID,
+		ProfileComplete: true,
+		Birthday:        parseBirthday,
+		PasswordHash:    pwdHash,
 	}
 }

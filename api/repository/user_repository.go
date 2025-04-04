@@ -9,6 +9,8 @@ type IUserRepo interface {
 	CreateUser(user *model.User) (uint, error)
 	GetUserByEmail(email string) (*model.User, error)
 	GetUserByID(userID uint) (*model.User, error)
+	GetUserByGoogleID(googleID string) (*model.User, error)
+	UpdateUser(user *model.User) error
 	Exists(userID uint) bool
 }
 
@@ -41,6 +43,18 @@ func (u *PgUserRepo) GetUserByID(userID uint) (*model.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (u *PgUserRepo) GetUserByGoogleID(googleID string) (*model.User, error) {
+	var user model.User
+	if err := u.db.Where("google_id = ?", googleID).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (u *PgUserRepo) UpdateUser(user *model.User) error {
+	return u.db.Save(user).Error
 }
 
 func (u *PgUserRepo) Exists(userID uint) bool {
