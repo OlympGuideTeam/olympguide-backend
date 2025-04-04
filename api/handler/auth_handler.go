@@ -51,13 +51,21 @@ func (h *AuthHandler) VerifyCode(c *gin.Context) {
 	}
 
 	err := h.authService.VerifyCode(request.Email, request.Code)
-
 	if err != nil {
 		errs.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Email confirmed"})
+	tempToken, err := h.tokenService.GenerateEmailToken(request.Email)
+	if err != nil {
+		errs.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Email confirmed",
+		"token":   tempToken,
+	})
 }
 
 func (h *AuthHandler) SignUp(c *gin.Context) {
