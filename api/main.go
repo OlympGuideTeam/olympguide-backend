@@ -58,7 +58,7 @@ func initHandlers(db *gorm.DB, redis *redis.Client) *handler.Handlers {
 
 	authService := service.NewAuthService(codeRepo, userRepo, regionRepo)
 	googleAuthService := service.NewGoogleAuthService(userRepo, regionRepo)
-	univerService := service.NewUniverService(univerRepo, regionRepo)
+	univerService := service.NewUniverService(univerRepo, regionRepo, diplomaRepo)
 	fieldService := service.NewFieldService(fieldRepo)
 	olympService := service.NewOlympService(olympRepo)
 	metaService := service.NewMetaService(regionRepo, olympRepo, programRepo)
@@ -66,7 +66,7 @@ func initHandlers(db *gorm.DB, redis *redis.Client) *handler.Handlers {
 	facultyService := service.NewFacultyService(facultyRepo, univerRepo)
 	programService := service.NewProgramService(programRepo, univerRepo, facultyRepo, fieldRepo)
 	diplomaService := service.NewDiplomaService(diplomaRepo, userRepo, olympRepo)
-	benefitService := service.NewBenefitService(benefitRepo)
+	benefitService := service.NewBenefitService(benefitRepo, diplomaRepo)
 	tokenService := service.NewTokenService()
 
 	return &handler.Handlers{
