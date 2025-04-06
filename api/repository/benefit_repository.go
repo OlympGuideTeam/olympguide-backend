@@ -4,6 +4,7 @@ import (
 	"api/dto"
 	"api/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type IBenefitRepo interface {
@@ -11,6 +12,7 @@ type IBenefitRepo interface {
 	DeleteBenefit(benefitID string) error
 	GetBenefitsByProgram(programID string, params *dto.BenefitByProgramQueryParams) ([]model.Benefit, error)
 	GetBenefitsByOlympiad(olympiadID string, params *dto.BenefitByOlympiadQueryParams) ([]model.Benefit, error)
+	GetBenefitsByDiplomas(diplomas []model.Diploma, params *dto.BenefitByOlympiadQueryParams) ([]model.Benefit, error)
 }
 
 type PgBenefitRepo struct {
@@ -47,7 +49,49 @@ func (b *PgBenefitRepo) GetBenefitsByProgram(programID string, params *dto.Benef
 
 func (b *PgBenefitRepo) GetBenefitsByOlympiad(olympiadID string, params *dto.BenefitByOlympiadQueryParams) ([]model.Benefit, error) {
 	var benefits []model.Benefit
-	query := b.db.Debug().
+	var query = b.db.Debug()
+
+	query = buildBenefitByOlympiadBaseQuery(query).
+		Where("olympiad_id = ?", olympiadID).
+		Order("fos.code, pr.program_id ASC, is_bvi DESC, min_diploma_level ASC")
+
+	applyBenefitBaseFilters(query, &params.BenefitBaseQueryParams)
+	applyBenefitsByOlympiadFilters(query, params.Fields, params.Search, params.UniversityID)
+	err := query.Find(&benefits).Error
+	return benefits, err
+}
+
+func (b *PgBenefitRepo) GetBenefitsByDiplomas(diplomas []model.Diploma, params *dto.BenefitByOlympiadQueryParams) ([]model.Benefit, error) {
+	if len(diplomas) == 0 {
+		return []model.Benefit{}, nil
+	}
+
+	var benefits []model.Benefit
+	var query = b.db.Debug()
+
+	var orConditions []clause.Expression
+	for _, diploma := range diplomas {
+		orConditions = append(orConditions, clause.AndConditions{
+			Exprs: []clause.Expression{
+				clause.Eq{Column: "olympiad_id", Value: diploma.OlympiadID},
+				clause.Lte{Column: "min_class", Value: diploma.Class},
+				clause.Gte{Column: "min_diploma_level", Value: diploma.Level},
+			},
+		})
+	}
+
+	query = buildBenefitByOlympiadBaseQuery(query).
+		Where(clause.OrConditions{Exprs: orConditions}).
+		Order("fos.code ASC, pr.program_id ASC, is_bvi DESC")
+
+	applyBenefitBaseFilters(query, &params.BenefitBaseQueryParams)
+	applyBenefitsByOlympiadFilters(query, params.Fields, params.Search, params.UniversityID)
+	err := query.Find(&benefits).Error
+	return benefits, err
+}
+
+func buildBenefitByOlympiadBaseQuery(query *gorm.DB) *gorm.DB {
+	return query.
 		Joins("JOIN olympguide.educational_program AS pr ON pr.program_id = benefit.program_id").
 		Joins("JOIN olympguide.field_of_study AS fos ON fos.field_id = pr.field_id").
 		Joins("JOIN olympguide.university AS u ON u.university_id = pr.university_id").
@@ -56,13 +100,7 @@ func (b *PgBenefitRepo) GetBenefitsByOlympiad(olympiadID string, params *dto.Ben
 		Preload("ConfSubjRel").
 		Preload("Program").
 		Preload("Program.Field").
-		Preload("Program.University").
-		Where("olympiad_id = ?", olympiadID)
-	applyBenefitByOlympiadSorting(query, params.Sort, params.Order)
-	applyBenefitBaseFilters(query, &params.BenefitBaseQueryParams)
-	applyBenefitsByOlympiadFilters(query, params.Fields, params.Search, params.UniversityID)
-	err := query.Find(&benefits).Error
-	return benefits, err
+		Preload("Program.University")
 }
 
 func applyBenefitByProgramSorting(query *gorm.DB, sort, order string) *gorm.DB {
@@ -81,24 +119,6 @@ func applyBenefitByProgramSorting(query *gorm.DB, sort, order string) *gorm.DB {
 		resultOrder = "olymp.popularity DESC"
 	}
 	resultOrder += ", olymp.olympiad_id ASC, is_bvi DESC, min_diploma_level ASC"
-	return query.Order(resultOrder)
-}
-
-func applyBenefitByOlympiadSorting(query *gorm.DB, sort, order string) *gorm.DB {
-	allowedSortFields := map[string]string{
-		"field":      "fos.code",
-		"university": "u.popularity",
-	}
-	var resultOrder string
-	if value, exist := allowedSortFields[sort]; exist {
-		if order != "asc" && order != "desc" {
-			order = "asc"
-		}
-		resultOrder = value + " " + order
-	} else {
-		resultOrder = "pr.popularity DESC"
-	}
-	resultOrder += ", pr.program_id ASC, is_bvi DESC, min_diploma_level ASC"
 	return query.Order(resultOrder)
 }
 

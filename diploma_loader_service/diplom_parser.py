@@ -145,6 +145,7 @@ def process_diploma_loader(topic, message):
                 diplomas.append(diploma)
 
         if diplomas:
+            logger.info(data)
             process_diplomas(diplomas, data['user_id'])
 
 

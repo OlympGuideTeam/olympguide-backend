@@ -115,7 +115,7 @@ func (rt *Router) setupOlympRoutes() {
 	{
 		olympiadWithID.GET("/", rt.handlers.Olymp.GetOlympiad)
 		olympiadWithID.GET("/benefits", rt.handlers.Benefit.GetBenefitsByOlympiad)
-		olympiadWithID.GET("/universities", rt.handlers.Univer.GetBenefitUnivers)
+		olympiadWithID.GET("/universities", rt.handlers.Univer.GetBenefitByOlympUnivers)
 	}
 }
 
@@ -126,11 +126,15 @@ func (rt *Router) setupUserRoutes() {
 		diplomas := user.Group("/diplomas")
 		{
 			diplomas.GET("/", rt.handlers.Diploma.GetUserDiplomas)
+			diplomas.GET("/universities", rt.handlers.Univer.GetUserDiplomasUnivers)
+			diplomas.GET("/benefits", rt.handlers.Benefit.GetUserBenefits)
 			diplomas.POST("/sync", rt.handlers.Diploma.SyncUserDiplomas)
 		}
 		diploma := user.Group("/diploma")
 		{
 			diploma.POST("/", rt.handlers.Diploma.NewDiplomaByUser)
+			diploma.GET("/:id/universities", rt.handlers.Univer.GetDiplomaUnivers)
+			diploma.GET("/:id/benefits", rt.handlers.Benefit.GetBenefitsByDiploma)
 			diploma.DELETE("/:id", rt.handlers.Diploma.DeleteDiploma)
 		}
 

@@ -1,4 +1,10 @@
+async-timeout==5.0.1
+certifi==2025.1.31
+charset-normalizer==3.4.1
 demjson3==3.0.6
+idna==3.10
+logger==1.4
 python-dotenv==1.0.1
 redis==5.2.1
-Requests==2.32.3
+requests==2.32.3
+urllib3==2.3.0

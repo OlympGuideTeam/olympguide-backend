@@ -3,6 +3,7 @@ package handler
 import (
 	"api/dto"
 	"api/service"
+	"api/utils/constants"
 	"api/utils/errs"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -86,20 +87,19 @@ func (b *BenefitHandler) GetBenefitsByProgram(c *gin.Context) {
 // GetBenefitsByOlympiad
 // @Summary Получить льготы по олимпиаде
 // @Description Возвращает список льгот по программам для указанной олимпиады.
-// @Description Поддерживаются фильтры по вузу, по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск и сортировка.
-// @Description льготы сгруппированы по программам, сортировка внутри программы: сначала БВИ, сначала 1 степень.
+// @Description Поддерживаются фильтры по вузу, по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск.
+// @Description Льготы сгруппированы по программам, сортировка внутри программы: сначала БВИ, сначала 1 степень.
+// @Description Программы сортируются по коду направления подготовки.
 // @Tags Льготы по олимпиаде
 // @Accept json
 // @Produce json
 // @Param id path string true "Идентификатор олимпиады"
-// @Param university_id query uint false "Идентификатор университета"
+// @Param university_id query uint false "Идентификатор университета (обязательный)"
 // @Param field query []string false "Фильтр по кодам направлений (01.03.04)"
 // @Param is_bvi query []bool false "Фильтр по BVI"
 // @Param min_diploma_level query []uint false "Фильтр по минимальному уровню диплома (1, 2, 3)"
 // @Param min_class query []uint false "Фильтр по минимальному классу (9, 10, 11)"
 // @Param search query string false "Поиск по названию программы и названию университета"
-// @Param sort query string false "Поле сортировки программ (field - по коду, university - по популярности университета), по умолчанию по убыванию популярности программы."
-// @Param order query string false "Порядок сортировки (asc или desc)"
 // @Success 200 {array} dto.ProgramBenefitTree "Список льгот, сгруппированных по программам"
 // @Failure 400 {object} errs.AppError "Неверный запрос"
 // @Failure 500 {object} errs.AppError "Ошибка сервера"
@@ -113,6 +113,77 @@ func (b *BenefitHandler) GetBenefitsByOlympiad(c *gin.Context) {
 	olympiadID := c.Param("id")
 
 	response, err := b.benefitService.GetBenefitsByOlympiad(olympiadID, &queryParams)
+	if err != nil {
+		errs.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+// GetBenefitsByDiploma
+// @Summary Получить льготы по диплому
+// @Description Возвращает список льгот по программам для указанного диплома.
+// @Description Поддерживаются фильтры по вузу, по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск.
+// @Description Льготы сгруппированы по программам, сортировка внутри программы: сначала БВИ, сначала 1 степень.
+// @Description Программы сортируются по коду направления подготовки.
+// @Tags Льготы по диплому
+// @Accept json
+// @Produce json
+// @Param id path string true "Идентификатор диплома"
+// @Param university_id query uint false "Идентификатор университета (обязательный)"
+// @Param field query []string false "Фильтр по кодам направлений (01.03.04)"
+// @Param is_bvi query []bool false "Фильтр по BVI"
+// @Param min_diploma_level query []uint false "Фильтр по минимальному уровню диплома (1, 2, 3)"
+// @Param min_class query []uint false "Фильтр по минимальному классу (9, 10, 11)"
+// @Param search query string false "Поиск по названию программы и названию университета"
+// @Success 200 {array} dto.ProgramBenefitTree "Список льгот, сгруппированных по программам"
+// @Failure 400 {object} errs.AppError "Неверный запрос"
+// @Failure 500 {object} errs.AppError "Ошибка сервера"
+// @Router /user/diploma/{id}/benefits [get]
+func (b *BenefitHandler) GetBenefitsByDiploma(c *gin.Context) {
+	var queryParams dto.BenefitByOlympiadQueryParams
+	if err := c.ShouldBindQuery(&queryParams); err != nil {
+		errs.HandleError(c, errs.InvalidRequest)
+		return
+	}
+	diplomaID := c.Param("id")
+	response, err := b.benefitService.GetBenefitsByDiploma(diplomaID, &queryParams)
+	if err != nil {
+		errs.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+// GetUserBenefits
+// @Summary Получить все льготы пользователя
+// @Description Возвращает список льгот по программам для пользователя.
+// @Description Поддерживаются фильтры по вузу, по направлениям, признаку BVI, минимальному уровню диплома, минимальному классу, а также поиск.
+// @Description Льготы сгруппированы по программам, сортировка внутри программы: сначала БВИ, сначала 1 степень.
+// @Description Программы сортируются по коду направления подготовки.
+// @Tags Льготы пользователя
+// @Accept json
+// @Produce json
+// @Param university_id query uint false "Идентификатор университета (обязательный)"
+// @Param field query []string false "Фильтр по кодам направлений (01.03.04)"
+// @Param is_bvi query []bool false "Фильтр по BVI"
+// @Param min_diploma_level query []uint false "Фильтр по минимальному уровню диплома (1, 2, 3)"
+// @Param min_class query []uint false "Фильтр по минимальному классу (9, 10, 11)"
+// @Param search query string false "Поиск по названию программы и названию университета"
+// @Success 200 {array} dto.ProgramBenefitTree "Список льгот, сгруппированных по программам"
+// @Failure 400 {object} errs.AppError "Неверный запрос"
+// @Failure 500 {object} errs.AppError "Ошибка сервера"
+// @Router /user/diplomas/benefits [get]
+func (b *BenefitHandler) GetUserBenefits(c *gin.Context) {
+	var queryParams dto.BenefitByOlympiadQueryParams
+	if err := c.ShouldBindQuery(&queryParams); err != nil {
+		errs.HandleError(c, errs.InvalidRequest)
+		return
+	}
+
+	response, err := b.benefitService.GetUserBenefits(c.MustGet(constants.ContextUserID), &queryParams)
 	if err != nil {
 		errs.HandleError(c, err)
 		return
