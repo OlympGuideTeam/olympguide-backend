@@ -17,7 +17,7 @@ type IAuthService interface {
 	SendCode(email string) error
 	VerifyCode(email, code string) error
 	SignUp(request *dto.SignUpRequest) error
-	Login(email string, password string) (uint, error)
+	Login(email, password string) (*model.User, error)
 }
 
 type AuthService struct {
@@ -104,21 +104,21 @@ func (s *AuthService) SignUp(request *dto.SignUpRequest) error {
 	return nil
 }
 
-func (s *AuthService) Login(email, password string) (uint, error) {
+func (s *AuthService) Login(email, password string) (*model.User, error) {
 	user, err := s.userRepo.GetUserByEmail(email)
 	if err != nil {
-		return 0, errs.UserNotFound
+		return nil, errs.UserNotFound
 	}
 
 	if !user.ProfileComplete {
-		return 0, errs.IncompleteRegistration
+		return nil, errs.IncompleteRegistration
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return 0, errs.InvalidPassword
+		return nil, errs.InvalidPassword
 	}
 
-	return user.UserID, nil
+	return user, nil
 }
 
 func generateCode() string {

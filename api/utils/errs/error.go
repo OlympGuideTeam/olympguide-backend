@@ -32,9 +32,10 @@ var (
 )
 
 var (
-	IncompleteRegistration = AppError{403, "IncompleteRegistration", "Incomplete registration", nil}
-	TokenExpired           = AppError{403, "TokenExpired", "Token expired", nil}
-	InvalidToken           = AppError{403, "InvalidToken", "Invalid token", nil}
+	IncompleteRegistration       = AppError{403, "IncompleteRegistration", "Incomplete registration", nil}
+	RegistrationAlreadyCompleted = AppError{403, "RegistrationAlreadyCompleted", "Registration already completed", nil}
+	TokenExpired                 = AppError{403, "TokenExpired", "Token expired", nil}
+	InvalidToken                 = AppError{403, "InvalidToken", "Invalid token", nil}
 )
 
 var (

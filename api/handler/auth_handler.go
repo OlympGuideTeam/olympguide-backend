@@ -92,21 +92,21 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	userID, err := h.authService.Login(request.Email, request.Password)
+	user, err := h.authService.Login(request.Email, request.Password)
 	if err != nil {
 		errs.HandleError(c, err)
 		return
 	}
 
 	session := sessions.Default(c)
-	session.Set(constants.ContextUserID, userID)
+	session.Set(constants.ContextUserID, user.UserID)
 
 	if err = session.Save(); err != nil {
 		errs.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Logged in"})
+	c.JSON(http.StatusOK, gin.H{"message": "Logged in", "first_name": user.FirstName, "last_name": user.LastName})
 }
 
 func (h *AuthHandler) Logout(c *gin.Context) {
@@ -131,7 +131,7 @@ func (h *AuthHandler) CheckSession(c *gin.Context) {
 
 func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 	var req dto.GoogleAuthRequest
-	if err := c.ShouldBind(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		errs.HandleError(c, errs.InvalidRequest)
 		return
 	}
@@ -149,7 +149,7 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 			errs.HandleError(c, err)
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"message": "Logged in"})
+		c.JSON(http.StatusOK, gin.H{"message": "Logged in", "first_name": user.FirstName, "last_name": user.LastName})
 		return
 	}
 
@@ -160,13 +160,13 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "uncompleted registration",
+		"message": "Uncompleted registration",
 		"token":   tempToken,
 	})
 }
 
 func (h *AuthHandler) CompleteProfile(c *gin.Context) {
-	var req dto.CompleteProfileRequest
+	var req dto.SignUpRequest
 	if err := c.ShouldBind(&req); err != nil {
 		errs.HandleError(c, errs.InvalidRequest)
 		return
@@ -174,17 +174,18 @@ func (h *AuthHandler) CompleteProfile(c *gin.Context) {
 
 	userID := c.MustGet(constants.ContextUserID).(uint)
 
-	if err := h.googleAuthService.CompleteProfile(userID, &req); err != nil {
+	user, err := h.googleAuthService.CompleteProfile(userID, &req)
+	if err != nil {
 		errs.HandleError(c, err)
 		return
 	}
 
 	session := sessions.Default(c)
 	session.Set(constants.ContextUserID, userID)
-	if err := session.Save(); err != nil {
+	if err = session.Save(); err != nil {
 		errs.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Logged in"})
+	c.JSON(http.StatusOK, gin.H{"message": "Logged in", "first_name": user.FirstName, "last_name": user.LastName})
 }

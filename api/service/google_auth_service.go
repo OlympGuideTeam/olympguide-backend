@@ -14,7 +14,7 @@ import (
 
 type IGoogleAuthService interface {
 	GoogleAuth(token string) (*model.User, error)
-	CompleteProfile(userID uint, req *dto.CompleteProfileRequest) error
+	CompleteProfile(userID uint, req *dto.SignUpRequest) (*model.User, error)
 }
 
 type GoogleAuthService struct {
@@ -35,19 +35,28 @@ func (s *GoogleAuthService) GoogleAuth(token string) (*model.User, error) {
 	return s.findOrCreateGoogleUser(tokenInfo)
 }
 
-func (s *GoogleAuthService) CompleteProfile(userID uint, req *dto.CompleteProfileRequest) error {
+func (s *GoogleAuthService) CompleteProfile(userID uint, req *dto.SignUpRequest) (*model.User, error) {
+	user, err := s.userRepo.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.ProfileComplete {
+		return nil, errs.RegistrationAlreadyCompleted
+	}
+
 	parsedBirthday, err := time.Parse("02.01.2006", req.Birthday)
 	if err != nil {
-		return errs.InvalidBirthday
+		return nil, errs.InvalidBirthday
 	}
 
 	if !s.regionRepo.RegionExists(req.RegionID) {
-		return errs.RegionNotFound
+		return nil, errs.RegionNotFound
 	}
 
-	user, err := s.userRepo.GetUserByID(userID)
+	hashedPassword, err := hashPassword(req.Password)
 	if err != nil {
-		return errs.UserNotFound
+		return nil, err
 	}
 
 	user.FirstName = req.FirstName
@@ -55,9 +64,10 @@ func (s *GoogleAuthService) CompleteProfile(userID uint, req *dto.CompleteProfil
 	user.SecondName = req.SecondName
 	user.Birthday = parsedBirthday
 	user.RegionID = req.RegionID
+	user.PasswordHash = hashedPassword
 	user.ProfileComplete = true
 
-	return s.userRepo.UpdateUser(user)
+	return user, s.userRepo.UpdateUser(user)
 }
 
 func validateGoogleToken(token string) (*oauth2.Tokeninfo, error) {
@@ -96,7 +106,7 @@ func (s *GoogleAuthService) findOrCreateGoogleUser(tokenInfo *oauth2.Tokeninfo) 
 		GoogleID: tokenInfo.UserId,
 	}
 
-	if _, err := s.userRepo.CreateUser(newUser); err != nil {
+	if _, err := s.userRepo.CreateGoogleUser(newUser); err != nil {
 		return nil, err
 	}
 	return newUser, nil

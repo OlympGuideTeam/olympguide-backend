@@ -27,11 +27,3 @@ type VerifyRequest struct {
 type GoogleAuthRequest struct {
 	Token string `json:"token" binding:"required"`
 }
-
-type CompleteProfileRequest struct {
-	FirstName  string `json:"first_name" binding:"required"`
-	LastName   string `json:"last_name" binding:"required"`
-	SecondName string `json:"second_name"`
-	Birthday   string `json:"birthday" binding:"required"`
-	RegionID   uint   `json:"region_id" binding:"required"`
-}

@@ -7,6 +7,7 @@ import (
 
 type IUserRepo interface {
 	CreateUser(user *model.User) (uint, error)
+	CreateGoogleUser(user *model.User) (uint, error)
 	GetUserByEmail(email string) (*model.User, error)
 	GetUserByID(userID uint) (*model.User, error)
 	GetUserByGoogleID(googleID string) (*model.User, error)
@@ -24,6 +25,13 @@ func NewPgUserRepo(db *gorm.DB) *PgUserRepo {
 
 func (u *PgUserRepo) CreateUser(user *model.User) (uint, error) {
 	if err := u.db.Create(&user).Error; err != nil {
+		return 0, err
+	}
+	return user.UserID, nil
+}
+
+func (u *PgUserRepo) CreateGoogleUser(user *model.User) (uint, error) {
+	if err := u.db.Select("Email", "GoogleID").Create(user).Error; err != nil {
 		return 0, err
 	}
 	return user.UserID, nil

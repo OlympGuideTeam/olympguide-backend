@@ -104,6 +104,7 @@ services:
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - BEARER_DATA_LOADER_TOKEN=${BEARER_DATA_LOADER_TOKEN}
+      - TOKEN_SECRET=${TOKEN_SECRET}
     depends_on:
       - db
       - redis
