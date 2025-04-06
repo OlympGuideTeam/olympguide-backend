@@ -22,6 +22,166 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/complete-sign-up": {
+            "post": {
+                "security": [
+                    {
+                        "ApiToken": []
+                    }
+                ],
+                "description": "Заполняет недостающие поля профиля после входа через Google.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Завершение регистрации",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID токен в формате Bearer \u003ctoken\u003e",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Имя",
+                        "name": "first_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фамилия",
+                        "name": "last_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Отчество",
+                        "name": "second_name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Дата рождения (в формате 02.01.2006)",
+                        "name": "birthday",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Пароль",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID региона",
+                        "name": "region_id",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный формат даты или другие ошибки валидации",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "401": {
+                        "description": "Отсутствует или невалидный/истёкший токен авторизации",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "403": {
+                        "description": "Регистрация уже завершена",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "404": {
+                        "description": "Регион не найден",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/google": {
+            "post": {
+                "description": "Если пользователь уже завершил регистрацию, создаётся сессия. Иначе возвращается временный токен для завершения регистрации.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Вход через Google",
+                "parameters": [
+                    {
+                        "description": "Токен Google ID",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GoogleAuthRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Регистрация не завершена — вернётся временный токен",
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegistrationIncompleteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "401": {
+                        "description": "Невалидный Google токен",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/field/{id}/programs": {
             "get": {
                 "description": "Возвращает список программ по направлению, сгруппированные по университету, с возможностью фильтрации по предметам, университету и поисковому запросу",
@@ -808,6 +968,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GoogleAuthRequest": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.GroupProgramTree": {
             "type": "object",
             "properties": {
@@ -848,6 +1019,23 @@ const docTemplate = `{
                     "description": "Название группы",
                     "type": "string",
                     "example": "Математические науки"
+                }
+            }
+        },
+        "dto.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "first_name": {
+                    "type": "string",
+                    "example": "Арсений"
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Титаренко"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Logged in"
                 }
             }
         },
@@ -926,6 +1114,9 @@ const docTemplate = `{
                 },
                 "university": {
                     "type": "string"
+                },
+                "university_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -981,6 +1172,19 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "dto.RegistrationIncompleteResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Uncompleted registration"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
                 }
             }
         },

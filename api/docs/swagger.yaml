@@ -55,6 +55,13 @@ definitions:
         example: Математика
         type: string
     type: object
+  dto.GoogleAuthRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
   dto.GroupProgramTree:
     properties:
       code:
@@ -83,6 +90,18 @@ definitions:
       name:
         description: Название группы
         example: Математические науки
+        type: string
+    type: object
+  dto.LoginResponse:
+    properties:
+      first_name:
+        example: Арсений
+        type: string
+      last_name:
+        example: Титаренко
+        type: string
+      message:
+        example: Logged in
         type: string
     type: object
   dto.OlympiadBenefitInfo:
@@ -138,6 +157,8 @@ definitions:
         type: integer
       university:
         type: string
+      university_id:
+        type: integer
     type: object
   dto.ProgramBenefitTree:
     properties:
@@ -174,6 +195,15 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  dto.RegistrationIncompleteResponse:
+    properties:
+      message:
+        example: Uncompleted registration
+        type: string
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
     type: object
   dto.UniverProgramTree:
     properties:
@@ -252,6 +282,113 @@ info:
   title: OlympGuide API
   version: "1.0"
 paths:
+  /auth/complete-sign-up:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Заполняет недостающие поля профиля после входа через Google.
+      parameters:
+      - description: ID токен в формате Bearer <token>
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Имя
+        in: formData
+        name: first_name
+        required: true
+        type: string
+      - description: Фамилия
+        in: formData
+        name: last_name
+        required: true
+        type: string
+      - description: Отчество
+        in: formData
+        name: second_name
+        type: string
+      - description: Дата рождения (в формате 02.01.2006)
+        in: formData
+        name: birthday
+        required: true
+        type: string
+      - description: Пароль
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: ID региона
+        in: formData
+        name: region_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+        "400":
+          description: Некорректный формат даты или другие ошибки валидации
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "401":
+          description: Отсутствует или невалидный/истёкший токен авторизации
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "403":
+          description: Регистрация уже завершена
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "404":
+          description: Регион не найден
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      security:
+      - ApiToken: []
+      summary: Завершение регистрации
+      tags:
+      - auth
+  /auth/google:
+    post:
+      consumes:
+      - application/json
+      description: Если пользователь уже завершил регистрацию, создаётся сессия. Иначе
+        возвращается временный токен для завершения регистрации.
+      parameters:
+      - description: Токен Google ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GoogleAuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Регистрация не завершена — вернётся временный токен
+          schema:
+            $ref: '#/definitions/dto.RegistrationIncompleteResponse'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "401":
+          description: Невалидный Google токен
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: Вход через Google
+      tags:
+      - auth
   /field/{id}/programs:
     get:
       consumes:

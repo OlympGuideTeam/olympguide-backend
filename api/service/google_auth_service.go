@@ -6,7 +6,6 @@ import (
 	"api/repository"
 	"api/utils/errs"
 	"context"
-	"errors"
 	"google.golang.org/api/oauth2/v2"
 	"google.golang.org/api/option"
 	"time"
@@ -79,11 +78,11 @@ func validateGoogleToken(token string) (*oauth2.Tokeninfo, error) {
 
 	tokenInfo, err := oauth2Service.Tokeninfo().IdToken(token).Do()
 	if err != nil {
-		return nil, err
+		return nil, errs.InvalidGoogleToken
 	}
 
 	if tokenInfo.Email == "" || !tokenInfo.VerifiedEmail {
-		return nil, errors.New("invalid Google token")
+		return nil, errs.InvalidGoogleToken
 	}
 	return tokenInfo, nil
 }

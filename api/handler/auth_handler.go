@@ -133,18 +133,19 @@ func (h *AuthHandler) CheckSession(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.MessageResponse{Message: constants.Authorized})
 }
 
-// GoogleLogin авторизует пользователя через Google
-// @Summary Авторизация через Google
-// @Description Авторизует пользователя с помощью Google OAuth2 токена. Если профиль не заполнен, возвращает временный токен для завершения регистрации.
-// @Tags Auth
+// GoogleLogin выполняет вход через Google OAuth2.
+//
+// @Summary Вход через Google
+// @Description Если пользователь уже завершил регистрацию, создаётся сессия. Иначе возвращается временный токен для завершения регистрации.
+// @Tags auth
 // @Accept json
 // @Produce json
-// @Param input body dto.GoogleAuthRequest true "Google токен"
-// @Success 200 {object} map[string]interface{} "Успешная авторизация (профиль заполнен)"
-// @Success 200 {object} map[string]interface{} "Незавершенная регистрация (профиль не заполнен)"
-// @Failure 400 {object} errs.Error "Неверный запрос"
-// @Failure 401 {object} errs.Error "Неверный Google токен"
-// @Failure 500 {object} errs.Error "Внутренняя ошибка сервера"
+// @Param request body dto.GoogleAuthRequest true "Токен Google ID"
+// @Success 200 {object} dto.LoginResponse "Регистрация завершена — пользователь вошёл"
+// @Success 200 {object} dto.RegistrationIncompleteResponse "Регистрация не завершена — вернётся временный токен"
+// @Failure 400 {object} errs.AppError "Некорректный запрос"
+// @Failure 401 {object} errs.AppError "Невалидный Google токен"
+// @Failure 500 {object} errs.AppError "Внутренняя ошибка сервера"
 // @Router /auth/google [post]
 func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 	var req dto.GoogleAuthRequest
@@ -186,6 +187,28 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 	})
 }
 
+// CompleteProfile завершает регистрацию пользователя, начавшего вход через Google.
+//
+// @Summary Завершение регистрации
+// @Description Заполняет недостающие поля профиля после входа через Google.
+// @Tags auth
+// @Accept multipart/form-data
+// @Produce json
+// @Param Authorization header string true "ID токен в формате Bearer <token>"
+// @Param first_name formData string true "Имя"
+// @Param last_name formData string true "Фамилия"
+// @Param second_name formData string false "Отчество"
+// @Param birthday formData string true "Дата рождения (в формате 02.01.2006)"
+// @Param password formData string true "Пароль"
+// @Param region_id formData int true "ID региона"
+// @Success 200 {object} dto.LoginResponse
+// @Failure 400 {object} errs.AppError "Некорректный формат даты или другие ошибки валидации"
+// @Failure 401 {object} errs.AppError "Отсутствует или невалидный/истёкший токен авторизации"
+// @Failure 403 {object} errs.AppError "Регистрация уже завершена"
+// @Failure 404 {object} errs.AppError "Регион не найден"
+// @Failure 500 {object} errs.AppError "Внутренняя ошибка сервера"
+// @Security ApiToken
+// @Router /auth/complete-sign-up [post]
 func (h *AuthHandler) CompleteProfile(c *gin.Context) {
 	var req dto.SignUpRequest
 	if err := c.ShouldBind(&req); err != nil {
