@@ -39,8 +39,8 @@ func (h *AuthHandler) SendCode(c *gin.Context) {
 		return
 	}
 
-	log.Printf("Code to %s", request.Email)
-	c.JSON(http.StatusOK, gin.H{"message": "Code sent to " + request.Email})
+	log.Printf("Code sent to %s", request.Email)
+	c.JSON(http.StatusOK, dto.MessageResponse{Message: "Code sent to " + request.Email})
 }
 
 func (h *AuthHandler) VerifyCode(c *gin.Context) {
@@ -62,9 +62,9 @@ func (h *AuthHandler) VerifyCode(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Email confirmed",
-		"token":   tempToken,
+	c.JSON(http.StatusOK, dto.VerifyCodeResponse{
+		Message: constants.EmailConfirmed,
+		Token:   tempToken,
 	})
 }
 
@@ -82,7 +82,7 @@ func (h *AuthHandler) SignUp(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Signed up"})
+	c.JSON(http.StatusCreated, dto.MessageResponse{Message: constants.SignedUp})
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
@@ -106,7 +106,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Logged in", "first_name": user.FirstName, "last_name": user.LastName})
+	c.JSON(http.StatusOK, dto.LoginResponse{
+		Message:   constants.LoggedIn,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+	})
 }
 
 func (h *AuthHandler) Logout(c *gin.Context) {
@@ -116,19 +120,32 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		errs.HandleError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Logged out"})
+	c.JSON(http.StatusOK, dto.MessageResponse{Message: constants.LoggedOut})
 }
 
 func (h *AuthHandler) CheckSession(c *gin.Context) {
 	session := sessions.Default(c)
 	userID := session.Get(constants.ContextUserID)
 	if userID == nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, dto.MessageResponse{Message: constants.Unauthorized})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Authorized"})
+	c.JSON(http.StatusOK, dto.MessageResponse{Message: constants.Authorized})
 }
 
+// GoogleLogin авторизует пользователя через Google
+// @Summary Авторизация через Google
+// @Description Авторизует пользователя с помощью Google OAuth2 токена. Если профиль не заполнен, возвращает временный токен для завершения регистрации.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param input body dto.GoogleAuthRequest true "Google токен"
+// @Success 200 {object} map[string]interface{} "Успешная авторизация (профиль заполнен)"
+// @Success 200 {object} map[string]interface{} "Незавершенная регистрация (профиль не заполнен)"
+// @Failure 400 {object} errs.Error "Неверный запрос"
+// @Failure 401 {object} errs.Error "Неверный Google токен"
+// @Failure 500 {object} errs.Error "Внутренняя ошибка сервера"
+// @Router /auth/google [post]
 func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 	var req dto.GoogleAuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -145,11 +162,15 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 	if user.ProfileComplete {
 		session := sessions.Default(c)
 		session.Set(constants.ContextUserID, user.UserID)
-		if err := session.Save(); err != nil {
+		if err = session.Save(); err != nil {
 			errs.HandleError(c, err)
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"message": "Logged in", "first_name": user.FirstName, "last_name": user.LastName})
+		c.JSON(http.StatusOK, dto.LoginResponse{
+			Message:   constants.LoggedIn,
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+		})
 		return
 	}
 
@@ -159,9 +180,9 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Uncompleted registration",
-		"token":   tempToken,
+	c.JSON(http.StatusOK, dto.RegistrationIncompleteResponse{
+		Message: constants.UncompletedRegistration,
+		Token:   tempToken,
 	})
 }
 
@@ -187,5 +208,9 @@ func (h *AuthHandler) CompleteProfile(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Logged in", "first_name": user.FirstName, "last_name": user.LastName})
+	c.JSON(http.StatusOK, dto.LoginResponse{
+		Message:   constants.LoggedIn,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+	})
 }

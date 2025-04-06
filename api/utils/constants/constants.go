@@ -35,3 +35,18 @@ const (
 	EmailTokenTTL = time.Minute * 15
 	IDTokenTTL    = time.Minute * 15
 )
+
+// Варианты message
+const (
+	UncompletedRegistration = "Uncompleted registration"
+	LoggedIn                = "Logged in"
+	LoggedOut               = "Logged out"
+	Unauthorized            = "Unauthorized"
+	Authorized              = "Authorized"
+	SignedUp                = "Signed up"
+	EmailConfirmed          = "Email confirmed"
+	Disliked                = "Disliked"
+	AlreadyDisliked         = "Already disliked"
+	Liked                   = "Liked"
+	AlreadyLiked            = "Already liked"
+)
