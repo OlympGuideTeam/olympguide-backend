@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"api/dto"
 	"api/service"
 	"api/utils/constants"
 	"api/utils/errs"
@@ -16,14 +17,23 @@ func NewUserHandler(userService service.IUserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
-func (u *UserHandler) GetUserData(c *gin.Context) {
+func (h *UserHandler) GetUserData(c *gin.Context) {
 	userID, _ := c.MustGet(constants.ContextUserID).(uint)
 
-	user, err := u.userService.GetUserData(userID)
+	user, err := h.userService.GetUserData(userID)
 	if err != nil {
 		errs.HandleError(c, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, user)
+}
+
+func (h *UserHandler) DeleteUser(c *gin.Context) {
+	userID := c.MustGet(constants.ContextUserID).(uint)
+	err := h.userService.DeleteUser(userID)
+	if err != nil {
+		errs.HandleError(c, err)
+	}
+	c.JSON(http.StatusOK, dto.MessageResponse{Message: constants.AccountDeleted})
 }

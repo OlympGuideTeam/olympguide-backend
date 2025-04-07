@@ -72,7 +72,7 @@ func (rt *Router) setupAuthRoutes() {
 	authGroup.POST("/send-code", rt.handlers.Auth.SendCode)
 	authGroup.POST("/verify-code", rt.handlers.Auth.VerifyCode)
 	authGroup.POST("/sign-up", rt.mw.EmailTokenMiddleware(), rt.handlers.Auth.SignUp)
-	authGroup.POST("/complete-sign-up", rt.mw.IDTokenMiddleware(), rt.handlers.Auth.CompleteProfile)
+	authGroup.POST("/complete-sign-up", rt.mw.IDTokenMiddleware(), rt.handlers.Auth.CompleteSignUp)
 	authGroup.POST("/login", rt.handlers.Auth.Login)
 	authGroup.POST("/google", rt.handlers.Auth.GoogleLogin)
 	authGroup.POST("/logout", rt.handlers.Auth.Logout)
@@ -122,6 +122,7 @@ func (rt *Router) setupOlympRoutes() {
 func (rt *Router) setupUserRoutes() {
 	user := rt.api.Group("/user", rt.mw.UserMiddleware())
 	{
+		user.DELETE("/", rt.handlers.User.DeleteUser)
 		user.GET("/data", rt.handlers.User.GetUserData)
 		diplomas := user.Group("/diplomas")
 		{

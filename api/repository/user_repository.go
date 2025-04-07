@@ -11,6 +11,7 @@ type IUserRepo interface {
 	GetUserByEmail(email string) (*model.User, error)
 	GetUserByID(userID uint) (*model.User, error)
 	GetUserByGoogleID(googleID string) (*model.User, error)
+	DeleteUser(user *model.User) error
 	UpdateUser(user *model.User) error
 	Exists(userID uint) bool
 }
@@ -69,4 +70,8 @@ func (u *PgUserRepo) Exists(userID uint) bool {
 	var count int64
 	u.db.Model(&model.User{}).Where("user_id = ?", userID).Count(&count)
 	return count > 0
+}
+
+func (u *PgUserRepo) DeleteUser(user *model.User) error {
+	return u.db.Delete(user).Error
 }

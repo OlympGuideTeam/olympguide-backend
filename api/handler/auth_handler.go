@@ -187,7 +187,7 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 	})
 }
 
-// CompleteProfile завершает регистрацию пользователя, начавшего вход через Google.
+// CompleteSignUp завершает регистрацию пользователя, начавшего вход через Google.
 //
 // @Summary Завершение регистрации
 // @Description Заполняет недостающие поля профиля после входа через Google.
@@ -209,7 +209,7 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 // @Failure 500 {object} errs.AppError "Внутренняя ошибка сервера"
 // @Security ApiToken
 // @Router /auth/complete-sign-up [post]
-func (h *AuthHandler) CompleteProfile(c *gin.Context) {
+func (h *AuthHandler) CompleteSignUp(c *gin.Context) {
 	var req dto.SignUpRequest
 	if err := c.ShouldBind(&req); err != nil {
 		errs.HandleError(c, errs.InvalidRequest)

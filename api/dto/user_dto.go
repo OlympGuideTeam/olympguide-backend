@@ -7,4 +7,5 @@ type UserDataResponse struct {
 	SecondName string         `json:"second_name"`
 	Birthday   string         `json:"birthday"`
 	Region     RegionResponse `json:"region"`
+	SyncGoogle bool           `json:"sync_google"`
 }

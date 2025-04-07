@@ -42,6 +42,7 @@ const (
 	LoggedIn                = "Logged in"
 	LoggedOut               = "Logged out"
 	Unauthorized            = "Unauthorized"
+	AccountDeleted          = "Account deleted"
 	Authorized              = "Authorized"
 	SignedUp                = "Signed up"
 	EmailConfirmed          = "Email confirmed"
