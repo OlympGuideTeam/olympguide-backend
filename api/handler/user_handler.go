@@ -5,6 +5,7 @@ import (
 	"api/service"
 	"api/utils/constants"
 	"api/utils/errs"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -35,5 +36,13 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	if err != nil {
 		errs.HandleError(c, err)
 	}
+
+	session := sessions.Default(c)
+	session.Clear()
+	if err := session.Save(); err != nil {
+		errs.HandleError(c, err)
+		return
+	}
+
 	c.JSON(http.StatusOK, dto.MessageResponse{Message: constants.AccountDeleted})
 }

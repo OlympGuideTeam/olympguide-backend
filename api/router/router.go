@@ -122,7 +122,7 @@ func (rt *Router) setupOlympRoutes() {
 func (rt *Router) setupUserRoutes() {
 	user := rt.api.Group("/user", rt.mw.UserMiddleware())
 	{
-		user.DELETE("/", rt.handlers.User.DeleteUser)
+		user.DELETE("", rt.handlers.User.DeleteUser)
 		user.GET("/data", rt.handlers.User.GetUserData)
 		diplomas := user.Group("/diplomas")
 		{
