@@ -8,6 +8,7 @@ import (
 
 type IUserService interface {
 	GetUserData(userID uint) (*dto.UserDataResponse, error)
+	DeleteUser(userID uint) error
 }
 
 type UserService struct {
@@ -26,6 +27,14 @@ func (u *UserService) GetUserData(userID uint) (*dto.UserDataResponse, error) {
 	return newUserDataResponse(user), nil
 }
 
+func (u *UserService) DeleteUser(userID uint) error {
+	user, err := u.userRepo.GetUserByID(userID)
+	if err != nil {
+		return err
+	}
+	return u.userRepo.DeleteUser(user)
+}
+
 func newUserDataResponse(user *model.User) *dto.UserDataResponse {
 	return &dto.UserDataResponse{
 		Email:      user.Email,
@@ -37,5 +46,6 @@ func newUserDataResponse(user *model.User) *dto.UserDataResponse {
 			RegionID: user.RegionID,
 			Name:     user.Region.Name,
 		},
+		SyncGoogle: user.GoogleID != "",
 	}
 }

@@ -3,15 +3,17 @@ package model
 import "time"
 
 type User struct {
-	UserID       uint `gorm:"primaryKey"`
-	Email        string
-	FirstName    string
-	LastName     string
-	SecondName   string
-	Birthday     time.Time
-	PasswordHash string
-	RegionID     uint
-	Region       Region `gorm:"foreignKey:RegionID;references:RegionID"`
+	UserID          uint   `gorm:"primaryKey"`
+	Email           string `gorm:"unique"`
+	FirstName       string
+	LastName        string
+	SecondName      string
+	Birthday        time.Time
+	PasswordHash    string
+	RegionID        uint
+	Region          Region `gorm:"foreignKey:RegionID;references:RegionID"`
+	GoogleID        string `gorm:"unique"`
+	ProfileComplete bool   `gorm:"default:false"`
 }
 
 type AdminUser struct {

@@ -223,9 +223,9 @@ func (u *UniverHandler) LikeUniver(c *gin.Context) {
 	}
 
 	if liked {
-		c.JSON(http.StatusOK, gin.H{"message": "Liked"})
+		c.JSON(http.StatusOK, dto.MessageResponse{Message: constants.Liked})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"message": "Already liked"})
+		c.JSON(http.StatusOK, dto.MessageResponse{Message: constants.AlreadyLiked})
 	}
 }
 
@@ -240,8 +240,8 @@ func (u *UniverHandler) DislikeUniver(c *gin.Context) {
 	}
 
 	if disliked {
-		c.JSON(http.StatusOK, gin.H{"message": "Disliked"})
+		c.JSON(http.StatusOK, dto.MessageResponse{Message: constants.Disliked})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"message": "Already disliked"})
+		c.JSON(http.StatusOK, dto.MessageResponse{Message: constants.AlreadyDisliked})
 	}
 }

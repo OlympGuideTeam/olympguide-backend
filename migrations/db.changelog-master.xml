@@ -30,5 +30,8 @@
         <sqlFile path="changelog/changes/011-add_unique_benefit_constraint.sql"/>
         <sqlFile path="changelog/changes/012-add_benefit_indexes_and_del_liked_fields.sql"/>
     </changeSet>
+    <changeSet id="8" author="titarenko">
+        <sqlFile path="changelog/changes/013-change_user_scheme_for_google_auth.sql"/>
+    </changeSet>
     
 </databaseChangeLog>

@@ -7,8 +7,12 @@ import (
 
 type IUserRepo interface {
 	CreateUser(user *model.User) (uint, error)
+	CreateGoogleUser(user *model.User) (uint, error)
 	GetUserByEmail(email string) (*model.User, error)
 	GetUserByID(userID uint) (*model.User, error)
+	GetUserByGoogleID(googleID string) (*model.User, error)
+	DeleteUser(user *model.User) error
+	UpdateUser(user *model.User) error
 	Exists(userID uint) bool
 }
 
@@ -22,6 +26,13 @@ func NewPgUserRepo(db *gorm.DB) *PgUserRepo {
 
 func (u *PgUserRepo) CreateUser(user *model.User) (uint, error) {
 	if err := u.db.Create(&user).Error; err != nil {
+		return 0, err
+	}
+	return user.UserID, nil
+}
+
+func (u *PgUserRepo) CreateGoogleUser(user *model.User) (uint, error) {
+	if err := u.db.Select("Email", "GoogleID").Create(user).Error; err != nil {
 		return 0, err
 	}
 	return user.UserID, nil
@@ -43,8 +54,24 @@ func (u *PgUserRepo) GetUserByID(userID uint) (*model.User, error) {
 	return &user, nil
 }
 
+func (u *PgUserRepo) GetUserByGoogleID(googleID string) (*model.User, error) {
+	var user model.User
+	if err := u.db.Where("google_id = ?", googleID).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (u *PgUserRepo) UpdateUser(user *model.User) error {
+	return u.db.Save(user).Error
+}
+
 func (u *PgUserRepo) Exists(userID uint) bool {
 	var count int64
 	u.db.Model(&model.User{}).Where("user_id = ?", userID).Count(&count)
 	return count > 0
+}
+
+func (u *PgUserRepo) DeleteUser(user *model.User) error {
+	return u.db.Delete(user).Error
 }

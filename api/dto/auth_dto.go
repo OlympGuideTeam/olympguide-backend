@@ -1,7 +1,7 @@
 package dto
 
 type SignUpRequest struct {
-	Email      string `json:"email" binding:"required"`
+	Email      string
 	Password   string `json:"password" binding:"required"`
 	FirstName  string `json:"first_name" binding:"required"`
 	LastName   string `json:"last_name" binding:"required"`
@@ -22,4 +22,28 @@ type SendRequest struct {
 type VerifyRequest struct {
 	Email string `json:"email" binding:"required"`
 	Code  string `json:"code" binding:"required"`
+}
+
+type GoogleAuthRequest struct {
+	Token string `json:"token" binding:"required"`
+}
+
+type LoginResponse struct {
+	Message   string `json:"message" example:"Logged in"`
+	FirstName string `json:"first_name" example:"Арсений"`
+	LastName  string `json:"last_name" example:"Титаренко"`
+}
+
+type RegistrationIncompleteResponse struct {
+	Message string `json:"message" example:"Uncompleted registration"`
+	Token   string `json:"token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+}
+
+type VerifyCodeResponse struct {
+	Message string `json:"message" example:"Email confirmed"`
+	Token   string `json:"token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+}
+
+type MessageResponse struct {
+	Message string `json:"message" example:"Message sent"`
 }

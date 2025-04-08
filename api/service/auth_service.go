@@ -17,7 +17,7 @@ type IAuthService interface {
 	SendCode(email string) error
 	VerifyCode(email, code string) error
 	SignUp(request *dto.SignUpRequest) error
-	Login(email string, password string) (uint, error)
+	Login(email, password string) (*model.User, error)
 }
 
 type AuthService struct {
@@ -104,17 +104,21 @@ func (s *AuthService) SignUp(request *dto.SignUpRequest) error {
 	return nil
 }
 
-func (s *AuthService) Login(email, password string) (uint, error) {
+func (s *AuthService) Login(email, password string) (*model.User, error) {
 	user, err := s.userRepo.GetUserByEmail(email)
 	if err != nil {
-		return 0, errs.UserNotFound
+		return nil, errs.UserNotFound
+	}
+
+	if !user.ProfileComplete {
+		return nil, errs.IncompleteRegistration
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return 0, errs.InvalidPassword
+		return nil, errs.InvalidPassword
 	}
 
-	return user.UserID, nil
+	return user, nil
 }
 
 func generateCode() string {
@@ -132,12 +136,13 @@ func hashPassword(password string) (string, error) {
 
 func newUserModel(request *dto.SignUpRequest, pwdHash string, parseBirthday time.Time) *model.User {
 	return &model.User{
-		FirstName:    request.FirstName,
-		LastName:     request.LastName,
-		SecondName:   request.SecondName,
-		Email:        request.Email,
-		RegionID:     request.RegionID,
-		Birthday:     parseBirthday,
-		PasswordHash: pwdHash,
+		FirstName:       request.FirstName,
+		LastName:        request.LastName,
+		SecondName:      request.SecondName,
+		Email:           request.Email,
+		RegionID:        request.RegionID,
+		ProfileComplete: true,
+		Birthday:        parseBirthday,
+		PasswordHash:    pwdHash,
 	}
 }
