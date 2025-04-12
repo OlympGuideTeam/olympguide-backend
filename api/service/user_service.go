@@ -46,6 +46,6 @@ func newUserDataResponse(user *model.User) *dto.UserDataResponse {
 			RegionID: user.RegionID,
 			Name:     user.Region.Name,
 		},
-		SyncGoogle: user.GoogleID != "",
+		SyncGoogle: user.GoogleID != nil,
 	}
 }

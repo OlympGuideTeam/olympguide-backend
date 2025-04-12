@@ -5,6 +5,7 @@ import (
 	"api/service"
 	"api/utils/constants"
 	"api/utils/errs"
+	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -75,6 +76,7 @@ func (h *AuthHandler) SignUp(c *gin.Context) {
 		return
 	}
 	request.Email = c.MustGet(constants.ContextEmail).(string)
+	fmt.Println("Email: ", request.Email)
 
 	err := h.authService.SignUp(&request)
 	if err != nil {
