@@ -71,11 +71,11 @@ func (rt *Router) setupAuthRoutes() {
 	authGroup := rt.api.Group("/auth")
 	authGroup.POST("/send-code", rt.handlers.Auth.SendCode)
 	authGroup.POST("/verify-code", rt.handlers.Auth.VerifyCode)
-	authGroup.POST("/sign-up", rt.mw.EmailTokenMiddleware(), rt.handlers.Auth.SignUp)
-	authGroup.POST("/complete-sign-up", rt.mw.IDTokenMiddleware(), rt.handlers.Auth.CompleteSignUp)
-	authGroup.POST("/login", rt.handlers.Auth.Login)
-	authGroup.POST("/google", rt.handlers.Auth.GoogleLogin)
-	authGroup.POST("/logout", rt.handlers.Auth.Logout)
+	authGroup.POST("/sign-up", rt.mw.AlreadyLoginMiddleware(), rt.mw.EmailTokenMiddleware(), rt.handlers.Auth.SignUp)
+	authGroup.POST("/complete-sign-up", rt.mw.AlreadyLoginMiddleware(), rt.mw.IDTokenMiddleware(), rt.handlers.Auth.CompleteSignUp)
+	authGroup.POST("/login", rt.mw.AlreadyLoginMiddleware(), rt.handlers.Auth.Login)
+	authGroup.POST("/google", rt.mw.AlreadyLoginMiddleware(), rt.handlers.Auth.GoogleLogin)
+	authGroup.POST("/logout", rt.mw.UserMiddleware(), rt.handlers.Auth.Logout)
 	authGroup.GET("/check-session", rt.handlers.Auth.CheckSession)
 }
 

@@ -93,7 +93,7 @@ func (s *GoogleAuthService) findOrCreateGoogleUser(tokenInfo *oauth2.Tokeninfo) 
 	}
 
 	if user, err := s.userRepo.GetUserByEmail(tokenInfo.Email); err == nil {
-		user.GoogleID = tokenInfo.UserId
+		user.GoogleID = &tokenInfo.UserId
 		if err = s.userRepo.UpdateUser(user); err != nil {
 			return nil, err
 		}
@@ -102,7 +102,7 @@ func (s *GoogleAuthService) findOrCreateGoogleUser(tokenInfo *oauth2.Tokeninfo) 
 
 	newUser := &model.User{
 		Email:    tokenInfo.Email,
-		GoogleID: tokenInfo.UserId,
+		GoogleID: &tokenInfo.UserId,
 	}
 
 	if _, err := s.userRepo.CreateGoogleUser(newUser); err != nil {

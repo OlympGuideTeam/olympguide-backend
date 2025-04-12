@@ -42,11 +42,6 @@ var (
 			return float64(memStats.Alloc)
 		},
 	)
-
-	cpuUsage = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "cpu_usage_percentage",
-		Help: "CPU usage percentage",
-	})
 )
 
 func RegisterMetrics() {
@@ -54,5 +49,4 @@ func RegisterMetrics() {
 	prometheus.MustRegister(RequestDuration)
 	prometheus.MustRegister(FailedRequests)
 	prometheus.MustRegister(memoryUsage)
-	prometheus.MustRegister(cpuUsage)
 }

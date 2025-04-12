@@ -33,6 +33,7 @@ var (
 
 var (
 	IncompleteRegistration       = AppError{403, "IncompleteRegistration", "Incomplete registration", nil}
+	UserAlreadyLoggedIn          = AppError{403, "UserAlreadyLoggedIn", "User already logged in", nil}
 	RegistrationAlreadyCompleted = AppError{403, "RegistrationAlreadyCompleted", "Registration already completed", nil}
 	TokenExpired                 = AppError{401, "TokenExpired", "Token expired", nil}
 	InvalidToken                 = AppError{401, "InvalidToken", "Invalid token", nil}

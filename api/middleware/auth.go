@@ -9,8 +9,20 @@ import (
 func (mw *Mw) UserMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		_, exist := c.Get(constants.ContextUserID)
-		if exist == false {
+		if !exist {
 			errs.HandleError(c, errs.Unauthorized)
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+
+func (mw *Mw) AlreadyLoginMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		_, exist := c.Get(constants.ContextUserID)
+		if exist {
+			errs.HandleError(c, errs.UserAlreadyLoggedIn)
 			c.Abort()
 			return
 		}

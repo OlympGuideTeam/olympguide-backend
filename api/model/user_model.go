@@ -11,9 +11,9 @@ type User struct {
 	Birthday        time.Time
 	PasswordHash    string
 	RegionID        uint
-	Region          Region `gorm:"foreignKey:RegionID;references:RegionID"`
-	GoogleID        string `gorm:"unique"`
-	ProfileComplete bool   `gorm:"default:false"`
+	Region          Region  `gorm:"foreignKey:RegionID;references:RegionID"`
+	GoogleID        *string `gorm:"unique;default:null"`
+	ProfileComplete bool    `gorm:"default:false"`
 }
 
 type AdminUser struct {
