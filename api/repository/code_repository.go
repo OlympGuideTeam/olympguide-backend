@@ -16,6 +16,7 @@ type ICodeRepo interface {
 	GetCodeTTL(ctx context.Context, email string) (time.Duration, error)
 	DeleteCode(ctx context.Context, email string) error
 	PublishEmailCode(ctx context.Context, email, code string) error
+	PublishGeneratedPassword(ctx context.Context, email, password string) error
 	DecreaseCodeAttempt(ctx context.Context, email string) error
 }
 
@@ -75,6 +76,12 @@ func (e *RedisCodeRepo) PublishEmailCode(ctx context.Context, email, code string
 	return e.rdb.Publish(ctx, constants.EmailCodeTopic, msgJSON).Err()
 }
 
+func (e *RedisCodeRepo) PublishGeneratedPassword(ctx context.Context, email, password string) error {
+	psw := Password{email, password}
+	pswJSON, _ := json.Marshal(psw)
+	return e.rdb.Publish(ctx, constants.PasswordTopic, pswJSON).Err()
+}
+
 func (e *RedisCodeRepo) DecreaseCodeAttempt(ctx context.Context, email string) error {
 	return e.rdb.HIncrBy(ctx, email, "attempts", -1).Err()
 }
@@ -82,4 +89,9 @@ func (e *RedisCodeRepo) DecreaseCodeAttempt(ctx context.Context, email string) e
 type Message struct {
 	Email string `json:"email"`
 	Code  string `json:"code"`
+}
+
+type Password struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }

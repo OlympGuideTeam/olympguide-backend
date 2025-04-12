@@ -23,6 +23,7 @@ const (
 
 const (
 	EmailCodeTopic = "auth.email.code"
+	PasswordTopic  = "auth.email.password"
 	DiplomaTopic   = "user.diplomas.upload"
 )
 const (
@@ -51,3 +52,5 @@ const (
 	Liked                   = "Liked"
 	AlreadyLiked            = "Already liked"
 )
+
+const PwdGenerateSize = 12

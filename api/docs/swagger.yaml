@@ -24,6 +24,22 @@ definitions:
       subject:
         type: string
     type: object
+  dto.EmailSignUpRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  dto.ExternalAuthRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
   dto.FacultyProgramTree:
     properties:
       faculty_id:
@@ -55,13 +71,6 @@ definitions:
         example: Математика
         type: string
     type: object
-  dto.GoogleAuthRequest:
-    properties:
-      token:
-        type: string
-    required:
-    - token
-    type: object
   dto.GroupProgramTree:
     properties:
       code:
@@ -91,6 +100,16 @@ definitions:
         description: Название группы
         example: Математические науки
         type: string
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
     type: object
   dto.LoginResponse:
     properties:
@@ -196,15 +215,6 @@ definitions:
           type: string
         type: array
     type: object
-  dto.RegistrationIncompleteResponse:
-    properties:
-      message:
-        example: Uncompleted registration
-        type: string
-      token:
-        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        type: string
-    type: object
   dto.UniverProgramTree:
     properties:
       programs:
@@ -282,98 +292,59 @@ info:
   title: OlympGuide API
   version: "1.0"
 paths:
-  /auth/complete-sign-up:
+  /auth/apple:
     post:
       consumes:
-      - multipart/form-data
-      description: Заполняет недостающие поля профиля после входа через Google.
+      - application/json
+      description: При успешном входе устанавливается сессия.
       parameters:
-      - description: ID токен в формате Bearer <token>
-        in: header
-        name: Authorization
+      - description: Токен Apple ID
+        in: body
+        name: request
         required: true
-        type: string
-      - description: Имя
-        in: formData
-        name: first_name
-        required: true
-        type: string
-      - description: Фамилия
-        in: formData
-        name: last_name
-        required: true
-        type: string
-      - description: Отчество
-        in: formData
-        name: second_name
-        type: string
-      - description: Дата рождения (в формате 02.01.2006)
-        in: formData
-        name: birthday
-        required: true
-        type: string
-      - description: Пароль
-        in: formData
-        name: password
-        required: true
-        type: string
-      - description: ID региона
-        in: formData
-        name: region_id
-        required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/dto.ExternalAuthRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Регистрация завершена — пользователь вошёл
           schema:
             $ref: '#/definitions/dto.LoginResponse'
         "400":
-          description: Некорректный формат даты или другие ошибки валидации
+          description: Некорректный запрос
           schema:
             $ref: '#/definitions/errs.AppError'
         "401":
-          description: Отсутствует или невалидный/истёкший токен авторизации
-          schema:
-            $ref: '#/definitions/errs.AppError'
-        "403":
-          description: Регистрация уже завершена
-          schema:
-            $ref: '#/definitions/errs.AppError'
-        "404":
-          description: Регион не найден
+          description: Невалидный Apple токен
           schema:
             $ref: '#/definitions/errs.AppError'
         "500":
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/errs.AppError'
-      security:
-      - ApiToken: []
-      summary: Завершение регистрации
+      summary: Вход через Apple
       tags:
       - auth
   /auth/google:
     post:
       consumes:
       - application/json
-      description: Если пользователь уже завершил регистрацию, создаётся сессия. Иначе
-        возвращается временный токен для завершения регистрации.
+      description: При успешном входе устанавливается сессия.
       parameters:
       - description: Токен Google ID
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.GoogleAuthRequest'
+          $ref: '#/definitions/dto.ExternalAuthRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Регистрация не завершена — вернётся временный токен
+          description: Регистрация завершена — пользователь вошёл
           schema:
-            $ref: '#/definitions/dto.RegistrationIncompleteResponse'
+            $ref: '#/definitions/dto.LoginResponse'
         "400":
           description: Некорректный запрос
           schema:
@@ -387,6 +358,81 @@ paths:
           schema:
             $ref: '#/definitions/errs.AppError'
       summary: Вход через Google
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Авторизует пользователя по email и паролю. В случае успеха создаётся
+        сессия, возвращаются имя и фамилия пользователя.
+      parameters:
+      - description: Данные для входа
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный вход, сессия создана
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+        "400":
+          description: Неверный формат запроса
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "404":
+          description: Пользователя с таким email не существует
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      security:
+      - SessionCookie: []
+      summary: Вход пользователя
+      tags:
+      - auth
+  /auth/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт нового пользователя по переданному email и паролю. Должен
+        быть подтверждён Email и получен токен на этапе verify_code. После успешной
+        регистрации создаётся сессия.
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EmailSignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Пользователь успешно зарегистрирован, сессия создана
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+        "400":
+          description: Неверный формат запроса
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "409":
+          description: Пользователь с таким email уже существует
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      security:
+      - ApiToken: []
+      summary: Регистрация пользователя по email
       tags:
       - auth
   /field/{id}/programs:
@@ -1092,4 +1138,59 @@ paths:
       summary: Получение университетов, в которые дипломы пользователя дают льготы.
       tags:
       - Университеты
+  /user/update:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 'Обновляет поля профиля: имя, фамилия, отчество, дата рождения,
+        id региона'
+      parameters:
+      - description: Имя
+        in: formData
+        name: first_name
+        required: true
+        type: string
+      - description: Фамилия
+        in: formData
+        name: last_name
+        required: true
+        type: string
+      - description: Отчество
+        in: formData
+        name: second_name
+        type: string
+      - description: Дата рождения (в формате 02.01.2006)
+        in: formData
+        name: birthday
+        required: true
+        type: string
+      - description: ID региона
+        in: formData
+        name: region_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+        "400":
+          description: Некорректный формат даты или другие ошибки валидации
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "404":
+          description: Регион не найден
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      security:
+      - ApiToken: []
+      summary: Обновление профиля
+      tags:
+      - auth
 swagger: "2.0"

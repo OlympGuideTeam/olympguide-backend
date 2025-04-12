@@ -63,6 +63,10 @@ func (d *DiplomaService) SyncUserDiplomas(userID uint) error {
 		return err
 	}
 
+	if !user.ProfileComplete {
+		return errs.ProfileNotComplete
+	}
+
 	message := newUploadDiplomasMessage(user)
 	if err = d.diplomaRepo.PublishUploadDiplomas(context.Background(), message); err != nil {
 		return err
@@ -99,9 +103,9 @@ func newDiplomasResponse(diplomas []model.Diploma) []dto.DiplomaResponse {
 func newUploadDiplomasMessage(user *model.User) *dto.UploadDiplomasMessage {
 	return &dto.UploadDiplomasMessage{
 		UserID:     user.UserID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		SecondName: user.SecondName,
-		Birthday:   user.Birthday.Format("02.01.2006"),
+		FirstName:  *user.FirstName,
+		LastName:   *user.LastName,
+		SecondName: *user.SecondName,
+		Birthday:   user.Birthdate.Format("02.01.2006"),
 	}
 }

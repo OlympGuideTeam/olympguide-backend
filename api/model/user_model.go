@@ -5,14 +5,15 @@ import "time"
 type User struct {
 	UserID          uint   `gorm:"primaryKey"`
 	Email           string `gorm:"unique"`
-	FirstName       string
-	LastName        string
-	SecondName      string
-	Birthday        time.Time
+	FirstName       *string
+	LastName        *string
+	SecondName      *string
+	Birthdate       *time.Time `gorm:"column:birthday"`
 	PasswordHash    string
-	RegionID        uint
+	RegionID        *uint
 	Region          Region  `gorm:"foreignKey:RegionID;references:RegionID"`
 	GoogleID        *string `gorm:"unique;default:null"`
+	AppleID         *string `gorm:"unique;default:null"`
 	ProfileComplete bool    `gorm:"default:false"`
 }
 
