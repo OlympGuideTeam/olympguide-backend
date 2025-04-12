@@ -22,7 +22,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth/google": {
+        "/auth/apple": {
             "post": {
                 "description": "При успешном входе устанавливается сессия.",
                 "consumes": [
@@ -61,6 +61,58 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Невалидный Apple токен",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/google": {
+            "post": {
+                "description": "При успешном входе устанавливается сессия.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Вход через Google",
+                "parameters": [
+                    {
+                        "description": "Токен Google ID",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ExternalAuthRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Регистрация завершена — пользователь вошёл",
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "401": {
+                        "description": "Невалидный Google токен",
                         "schema": {
                             "$ref": "#/definitions/errs.AppError"
                         }

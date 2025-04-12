@@ -218,7 +218,7 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 // @Failure 400 {object} errs.AppError "Некорректный запрос"
 // @Failure 401 {object} errs.AppError "Невалидный Apple токен"
 // @Failure 500 {object} errs.AppError "Внутренняя ошибка сервера"
-// @Router /auth/google [post]
+// @Router /auth/apple [post]
 func (h *AuthHandler) AppleLogin(c *gin.Context) {
 	var req dto.ExternalAuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

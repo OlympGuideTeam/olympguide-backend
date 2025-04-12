@@ -292,7 +292,7 @@ info:
   title: OlympGuide API
   version: "1.0"
 paths:
-  /auth/google:
+  /auth/apple:
     post:
       consumes:
       - application/json
@@ -324,6 +324,40 @@ paths:
           schema:
             $ref: '#/definitions/errs.AppError'
       summary: Вход через Apple
+      tags:
+      - auth
+  /auth/google:
+    post:
+      consumes:
+      - application/json
+      description: При успешном входе устанавливается сессия.
+      parameters:
+      - description: Токен Google ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ExternalAuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Регистрация завершена — пользователь вошёл
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "401":
+          description: Невалидный Google токен
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: Вход через Google
       tags:
       - auth
   /auth/login:
