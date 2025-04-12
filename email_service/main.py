@@ -1,8 +1,7 @@
 import constants
 import redis
 import logging
-import smtplib
-from email.mime.text import MIMEText
+import sender
 
 redis_client = redis.StrictRedis(
     host=constants.REDIS_HOST,
@@ -14,30 +13,12 @@ redis_client = redis.StrictRedis(
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-
-def send_code(to_email, code):
-    subject = "OlympGuide - одноразовый код"
-    body = f"Ваш одноразовый код подтверждения: {code}"
-
-    msg = MIMEText(body)
-    msg["Subject"] = subject
-    msg["From"] = constants.SMTP_USERNAME
-    msg["To"] = to_email
-
-    try:
-        with smtplib.SMTP(constants.SMTP_SERVER, constants.SMTP_PORT) as server:
-            server.starttls()
-            server.login(constants.SMTP_USERNAME, constants.SMTP_PASSWORD)
-            server.sendmail(constants.SMTP_USERNAME, to_email, msg.as_string())
-        logger.info(f"Email sent to {to_email}")
-    except Exception as e:
-        logger.error(f"Failed to send email: {e}")
-
-
 def process_message(topic, message):
     data = eval(message)
     if topic == constants.EMAIL_CODE_TOPIC:
-        send_code(data["email"], data["code"])
+        sender.send_code(data["email"], data["code"])
+    elif topic == constants.PASSWORD_TOPIC:
+        sender.send_password(data["email"], data["password"])
     else:
         logger.warning(f"Unknown topic: {topic}")
 

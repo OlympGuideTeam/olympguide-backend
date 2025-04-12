@@ -24,7 +24,9 @@ var (
 	InternalServerError = AppError{500, "InternalServerError", "Internal server error", nil}
 	Unauthorized        = AppError{401, "Unauthorized", "Unauthorized", nil}
 	NotEnoughRights     = AppError{403, "NotEnoughRights", "User does not haves enough rights", nil}
+	ProfileNotComplete  = AppError{403, "ProfileNotComplete", "Profile not complete", nil}
 )
+
 var (
 	CodeNotFoundOrExpired  = AppError{404, "CodeNotFoundOrExpired", "Code not found or expired", nil}
 	TooManyAttempts        = AppError{429, "TooManyAttempts", "Too many attempts", nil}
