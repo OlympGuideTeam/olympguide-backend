@@ -8,4 +8,5 @@ type UserDataResponse struct {
 	Birthday   string         `json:"birthday"`
 	Region     RegionResponse `json:"region"`
 	SyncGoogle bool           `json:"sync_google"`
+	SyncApple  bool           `json:"sync_apple"`
 }

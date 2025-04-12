@@ -1,13 +1,16 @@
 package dto
 
-type SignUpRequest struct {
-	Email      string
-	Password   string `json:"password" binding:"required"`
+type UpdateUserRequest struct {
 	FirstName  string `json:"first_name" binding:"required"`
 	LastName   string `json:"last_name" binding:"required"`
 	SecondName string `json:"second_name" binding:"omitempty,min=1"`
-	Birthday   string `json:"birthday" binding:"required"`
+	Birthdate  string `json:"birthdate" binding:"required"`
 	RegionID   uint   `json:"region_id" binding:"required"`
+}
+
+type EmailSignUpRequest struct {
+	Email    string
+	Password string `json:"password" binding:"required"`
 }
 
 type LoginRequest struct {
@@ -24,8 +27,12 @@ type VerifyRequest struct {
 	Code  string `json:"code" binding:"required"`
 }
 
-type GoogleAuthRequest struct {
+type ExternalAuthRequest struct {
 	Token string `json:"token" binding:"required"`
+}
+
+type UpdatePasswordRequest struct {
+	Password string `json:"password" binding:"required"`
 }
 
 type LoginResponse struct {

@@ -10,13 +10,12 @@ import (
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"math/rand"
-	"time"
 )
 
 type IAuthService interface {
 	SendCode(email string) error
 	VerifyCode(email, code string) error
-	SignUp(request *dto.SignUpRequest) error
+	SignUp(request *dto.EmailSignUpRequest) (*model.User, error)
 	Login(email, password string) (*model.User, error)
 }
 
@@ -81,37 +80,24 @@ func (s *AuthService) VerifyCode(email, requestCode string) error {
 	return nil
 }
 
-func (s *AuthService) SignUp(request *dto.SignUpRequest) error {
-	parsedBirthday, err := time.Parse("02.01.2006", request.Birthday)
+func (s *AuthService) SignUp(request *dto.EmailSignUpRequest) (*model.User, error) {
+	hashedPassword, err := HashPassword(request.Password)
 	if err != nil {
-		return errs.InvalidBirthday
+		return nil, err
 	}
 
-	if !s.regionRepo.RegionExists(request.RegionID) {
-		return errs.RegionNotFound
-	}
-
-	hashedPassword, err := hashPassword(request.Password)
+	user := newPoorUserModel(request, hashedPassword)
+	user, err = s.userRepo.CreateUser(user)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	user := newUserModel(request, hashedPassword, parsedBirthday)
-	_, err = s.userRepo.CreateUser(user)
-	if err != nil {
-		return err
-	}
-	return nil
+	return user, nil
 }
 
 func (s *AuthService) Login(email, password string) (*model.User, error) {
 	user, err := s.userRepo.GetUserByEmail(email)
 	if err != nil {
 		return nil, errs.UserNotFound
-	}
-
-	if !user.ProfileComplete {
-		return nil, errs.IncompleteRegistration
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
@@ -126,7 +112,7 @@ func generateCode() string {
 	return code
 }
 
-func hashPassword(password string) (string, error) {
+func HashPassword(password string) (string, error) {
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
@@ -134,15 +120,9 @@ func hashPassword(password string) (string, error) {
 	return string(hashedBytes), nil
 }
 
-func newUserModel(request *dto.SignUpRequest, pwdHash string, parseBirthday time.Time) *model.User {
+func newPoorUserModel(request *dto.EmailSignUpRequest, pwdHash string) *model.User {
 	return &model.User{
-		FirstName:       request.FirstName,
-		LastName:        request.LastName,
-		SecondName:      request.SecondName,
-		Email:           request.Email,
-		RegionID:        request.RegionID,
-		ProfileComplete: true,
-		Birthday:        parseBirthday,
-		PasswordHash:    pwdHash,
+		Email:        request.Email,
+		PasswordHash: pwdHash,
 	}
 }

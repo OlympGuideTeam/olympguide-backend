@@ -72,9 +72,9 @@ func (rt *Router) setupAuthRoutes() {
 	authGroup.POST("/send-code", rt.handlers.Auth.SendCode)
 	authGroup.POST("/verify-code", rt.handlers.Auth.VerifyCode)
 	authGroup.POST("/sign-up", rt.mw.AlreadyLoginMiddleware(), rt.mw.EmailTokenMiddleware(), rt.handlers.Auth.SignUp)
-	authGroup.POST("/complete-sign-up", rt.mw.AlreadyLoginMiddleware(), rt.mw.IDTokenMiddleware(), rt.handlers.Auth.CompleteSignUp)
 	authGroup.POST("/login", rt.mw.AlreadyLoginMiddleware(), rt.handlers.Auth.Login)
 	authGroup.POST("/google", rt.mw.AlreadyLoginMiddleware(), rt.handlers.Auth.GoogleLogin)
+	authGroup.POST("/apple", rt.mw.AlreadyLoginMiddleware(), rt.handlers.Auth.AppleLogin)
 	authGroup.POST("/logout", rt.mw.UserMiddleware(), rt.handlers.Auth.Logout)
 	authGroup.GET("/check-session", rt.handlers.Auth.CheckSession)
 }
@@ -84,7 +84,6 @@ func (rt *Router) setupUniverRoutes() {
 	university := rt.api.Group("/university")
 	{
 		university.POST("/", rt.mw.RolesMiddleware(role.Founder, role.Admin, role.DataLoaderService), rt.handlers.Univer.NewUniver)
-
 		universityWithID := university.Group("/:id")
 		{
 			universityWithID.GET("/", rt.handlers.Univer.GetUniver)
@@ -124,6 +123,8 @@ func (rt *Router) setupUserRoutes() {
 	{
 		user.DELETE("", rt.handlers.User.DeleteUser)
 		user.GET("/data", rt.handlers.User.GetUserData)
+		user.POST("/update", rt.handlers.User.UpdateUser)
+		user.POST("/update-password", rt.mw.EmailTokenMiddleware(), rt.handlers.User.UpdatePassword)
 		diplomas := user.Group("/diplomas")
 		{
 			diplomas.GET("/", rt.handlers.Diploma.GetUserDiplomas)

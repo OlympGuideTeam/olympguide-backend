@@ -22,16 +22,11 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth/complete-sign-up": {
+        "/auth/google": {
             "post": {
-                "security": [
-                    {
-                        "ApiToken": []
-                    }
-                ],
-                "description": "Заполняет недостающие поля профиля после входа через Google.",
+                "description": "При успешном входе устанавливается сессия.",
                 "consumes": [
-                    "multipart/form-data"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -39,84 +34,33 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Завершение регистрации",
+                "summary": "Вход через Apple",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "ID токен в формате Bearer \u003ctoken\u003e",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Имя",
-                        "name": "first_name",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Фамилия",
-                        "name": "last_name",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Отчество",
-                        "name": "second_name",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Дата рождения (в формате 02.01.2006)",
-                        "name": "birthday",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Пароль",
-                        "name": "password",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "ID региона",
-                        "name": "region_id",
-                        "in": "formData",
-                        "required": true
+                        "description": "Токен Apple ID",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ExternalAuthRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Регистрация завершена — пользователь вошёл",
                         "schema": {
                             "$ref": "#/definitions/dto.LoginResponse"
                         }
                     },
                     "400": {
-                        "description": "Некорректный формат даты или другие ошибки валидации",
+                        "description": "Некорректный запрос",
                         "schema": {
                             "$ref": "#/definitions/errs.AppError"
                         }
                     },
                     "401": {
-                        "description": "Отсутствует или невалидный/истёкший токен авторизации",
-                        "schema": {
-                            "$ref": "#/definitions/errs.AppError"
-                        }
-                    },
-                    "403": {
-                        "description": "Регистрация уже завершена",
-                        "schema": {
-                            "$ref": "#/definitions/errs.AppError"
-                        }
-                    },
-                    "404": {
-                        "description": "Регион не найден",
+                        "description": "Невалидный Apple токен",
                         "schema": {
                             "$ref": "#/definitions/errs.AppError"
                         }
@@ -130,9 +74,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/google": {
+        "/auth/login": {
             "post": {
-                "description": "Если пользователь уже завершил регистрацию, создаётся сессия. Иначе возвращается временный токен для завершения регистрации.",
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "Авторизует пользователя по email и паролю. В случае успеха создаётся сессия, возвращаются имя и фамилия пользователя.",
                 "consumes": [
                     "application/json"
                 ],
@@ -142,33 +91,90 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Вход через Google",
+                "summary": "Вход пользователя",
                 "parameters": [
                     {
-                        "description": "Токен Google ID",
+                        "description": "Данные для входа",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.GoogleAuthRequest"
+                            "$ref": "#/definitions/dto.LoginRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Регистрация не завершена — вернётся временный токен",
+                        "description": "Успешный вход, сессия создана",
                         "schema": {
-                            "$ref": "#/definitions/dto.RegistrationIncompleteResponse"
+                            "$ref": "#/definitions/dto.LoginResponse"
                         }
                     },
                     "400": {
-                        "description": "Некорректный запрос",
+                        "description": "Неверный формат запроса",
                         "schema": {
                             "$ref": "#/definitions/errs.AppError"
                         }
                     },
-                    "401": {
-                        "description": "Невалидный Google токен",
+                    "404": {
+                        "description": "Пользователя с таким email не существует",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/sign-up": {
+            "post": {
+                "security": [
+                    {
+                        "ApiToken": []
+                    }
+                ],
+                "description": "Создаёт нового пользователя по переданному email и паролю. Должен быть подтверждён Email и получен токен на этапе verify_code. После успешной регистрации создаётся сессия.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Регистрация пользователя по email",
+                "parameters": [
+                    {
+                        "description": "Данные для регистрации",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.EmailSignUpRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Пользователь успешно зарегистрирован, сессия создана",
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат запроса",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "409": {
+                        "description": "Пользователь с таким email уже существует",
                         "schema": {
                             "$ref": "#/definitions/errs.AppError"
                         }
@@ -1183,6 +1189,88 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/update": {
+            "post": {
+                "security": [
+                    {
+                        "ApiToken": []
+                    }
+                ],
+                "description": "Обновляет поля профиля: имя, фамилия, отчество, дата рождения, id региона",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Обновление профиля",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Имя",
+                        "name": "first_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фамилия",
+                        "name": "last_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Отчество",
+                        "name": "second_name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Дата рождения (в формате 02.01.2006)",
+                        "name": "birthday",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID региона",
+                        "name": "region_id",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный формат даты или другие ошибки валидации",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "404": {
+                        "description": "Регион не найден",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errs.AppError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1219,6 +1307,31 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "subject": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.EmailSignUpRequest": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ExternalAuthRequest": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
                     "type": "string"
                 }
             }
@@ -1266,17 +1379,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.GoogleAuthRequest": {
-            "type": "object",
-            "required": [
-                "token"
-            ],
-            "properties": {
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
         "dto.GroupProgramTree": {
             "type": "object",
             "properties": {
@@ -1317,6 +1419,21 @@ const docTemplate = `{
                     "description": "Название группы",
                     "type": "string",
                     "example": "Математические науки"
+                }
+            }
+        },
+        "dto.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
                 }
             }
         },
@@ -1470,19 +1587,6 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "dto.RegistrationIncompleteResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "Uncompleted registration"
-                },
-                "token": {
-                    "type": "string",
-                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
                 }
             }
         },

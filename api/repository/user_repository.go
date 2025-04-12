@@ -6,11 +6,11 @@ import (
 )
 
 type IUserRepo interface {
-	CreateUser(user *model.User) (uint, error)
-	CreateGoogleUser(user *model.User) (uint, error)
+	CreateUser(user *model.User) (*model.User, error)
 	GetUserByEmail(email string) (*model.User, error)
 	GetUserByID(userID uint) (*model.User, error)
 	GetUserByGoogleID(googleID string) (*model.User, error)
+	GetUserByAppleID(appleID string) (*model.User, error)
 	DeleteUser(user *model.User) error
 	UpdateUser(user *model.User) error
 	Exists(userID uint) bool
@@ -24,18 +24,11 @@ func NewPgUserRepo(db *gorm.DB) *PgUserRepo {
 	return &PgUserRepo{db: db}
 }
 
-func (u *PgUserRepo) CreateUser(user *model.User) (uint, error) {
+func (u *PgUserRepo) CreateUser(user *model.User) (*model.User, error) {
 	if err := u.db.Create(&user).Error; err != nil {
-		return 0, err
+		return nil, err
 	}
-	return user.UserID, nil
-}
-
-func (u *PgUserRepo) CreateGoogleUser(user *model.User) (uint, error) {
-	if err := u.db.Select("Email", "GoogleID").Create(user).Error; err != nil {
-		return 0, err
-	}
-	return user.UserID, nil
+	return user, nil
 }
 
 func (u *PgUserRepo) GetUserByEmail(email string) (*model.User, error) {
@@ -57,6 +50,14 @@ func (u *PgUserRepo) GetUserByID(userID uint) (*model.User, error) {
 func (u *PgUserRepo) GetUserByGoogleID(googleID string) (*model.User, error) {
 	var user model.User
 	if err := u.db.Where("google_id = ?", googleID).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (u *PgUserRepo) GetUserByAppleID(appleID string) (*model.User, error) {
+	var user model.User
+	if err := u.db.Where("apple_id = ?", appleID).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil

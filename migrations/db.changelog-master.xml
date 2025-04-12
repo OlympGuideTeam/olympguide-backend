@@ -33,5 +33,8 @@
     <changeSet id="8" author="titarenko">
         <sqlFile path="changelog/changes/013-change_user_scheme_for_google_auth.sql"/>
     </changeSet>
+    <changeSet id="9" author="titarenko">
+        <sqlFile path="changelog/changes/014-add_apple_id.sql"/>
+    </changeSet>
     
 </databaseChangeLog>
