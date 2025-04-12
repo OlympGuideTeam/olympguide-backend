@@ -32,6 +32,10 @@ def send_code(to_email, code):
             text-align: center;
             margin-bottom: 25px;
           }}
+          .code-container {{
+            text-align: center;
+            margin: 20px 0;
+          }}
           .code {{
             display: inline-block;
             background-color: #f0f0f0;
@@ -41,13 +45,15 @@ def send_code(to_email, code):
             font-size: 24px;
             letter-spacing: 2px;
             color: #e74c3c;
-            margin: 15px 0;
             border-radius: 5px;
           }}
           .footer {{
             margin-top: 30px;
             font-size: 12px;
             color: #7f8c8d;
+            text-align: center;
+          }}
+          .text-center {{
             text-align: center;
           }}
         </style>
@@ -57,9 +63,11 @@ def send_code(to_email, code):
           <div class="header">
             <h2>Ваш одноразовый код подтверждения</h2>
           </div>
-          <p>Для завершения регистрации введите следующий код:</p>
-          <div class="code">{code}</div>
-          <p>Этот код действителен в течение ограниченного времени.</p>
+          <p class="text-center">Для завершения регистрации введите следующий код:</p>
+          <div class="code-container">
+            <div class="code">{code}</div>
+          </div>
+          <p class="text-center">Этот код действителен в течение ограниченного времени.</p>
           <div class="footer">
             <p>OlympGuide &copy; 2025. Все права защищены.</p>
           </div>
@@ -96,6 +104,10 @@ def send_password(to_email, password):
             text-align: center;
             margin-bottom: 25px;
           }}
+          .password-container {{
+            text-align: center;
+            margin: 20px 0;
+          }}
           .password {{
             display: inline-block;
             background-color: #f8f8f8;
@@ -104,9 +116,10 @@ def send_password(to_email, password):
             font-family: 'Courier New', monospace;
             font-size: 18px;
             color: #27ae60;
-            margin: 15px 0;
             border-radius: 5px;
             word-break: break-all;
+            max-width: 100%;
+            overflow-wrap: break-word;
           }}
           .footer {{
             margin-top: 30px;
@@ -117,6 +130,10 @@ def send_password(to_email, password):
           .warning {{
             color: #e74c3c;
             font-weight: bold;
+            text-align: center;
+          }}
+          .text-center {{
+            text-align: center;
           }}
         </style>
       </head>
@@ -125,8 +142,10 @@ def send_password(to_email, password):
           <div class="header">
             <h2>Ваш сгенерированный пароль</h2>
           </div>
-          <p>Вы можете использовать этот пароль для входа по почте:</p>
-          <div class="password">{password}</div>
+          <p class="text-center">Вы можете использовать этот пароль для входа по почте:</p>
+          <div class="password-container">
+            <div class="password">{password}</div>
+          </div>
           <p class="warning">Сохраните этот пароль в надежном месте. Для безопасности рекомендуется сменить его после первого входа.</p>
           <div class="footer">
             <p>OlympGuide &copy; 2025. Все права защищены.</p>

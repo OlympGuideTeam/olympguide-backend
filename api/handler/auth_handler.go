@@ -106,10 +106,8 @@ func (h *AuthHandler) SignUp(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, dto.LoginResponse{
-		Message:   constants.SignedUp,
-		FirstName: *user.FirstName,
-		LastName:  *user.LastName,
+	c.JSON(http.StatusCreated, dto.MessageResponse{
+		Message: constants.SignedUp,
 	})
 }
 
@@ -146,10 +144,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.LoginResponse{
-		Message:   constants.LoggedIn,
-		FirstName: *user.FirstName,
-		LastName:  *user.LastName,
+	c.JSON(http.StatusOK, dto.MessageResponse{
+		Message: constants.LoggedIn,
 	})
 }
 
@@ -205,10 +201,8 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.LoginResponse{
-		Message:   constants.LoggedIn,
-		FirstName: *user.FirstName,
-		LastName:  *user.LastName,
+	c.JSON(http.StatusOK, dto.MessageResponse{
+		Message: constants.LoggedIn,
 	})
 	return
 }
@@ -245,10 +239,8 @@ func (h *AuthHandler) AppleLogin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.LoginResponse{
-		Message:   constants.LoggedIn,
-		FirstName: *user.FirstName,
-		LastName:  *user.LastName,
+	c.JSON(http.StatusOK, dto.MessageResponse{
+		Message: constants.LoggedIn,
 	})
 	return
 }

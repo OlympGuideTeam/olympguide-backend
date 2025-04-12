@@ -9,7 +9,7 @@ import (
 )
 
 type IUserService interface {
-	GetUserData(userID uint) (*dto.UserDataResponse, error)
+	GetUserData(userID uint) (*dto.UserDataResponse, bool, error)
 	DeleteUser(userID uint) error
 	UpdateUser(userID uint, request *dto.UpdateUserRequest) error
 	UpdatePassword(userID uint, password string) error
@@ -24,12 +24,17 @@ func NewUserService(userRepo repository.IUserRepo, regionRepo repository.IRegion
 	return &UserService{userRepo: userRepo, regionRepo: regionRepo}
 }
 
-func (u *UserService) GetUserData(userID uint) (*dto.UserDataResponse, error) {
+func (u *UserService) GetUserData(userID uint) (*dto.UserDataResponse, bool, error) {
 	user, err := u.userRepo.GetUserByID(userID)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
-	return newUserDataResponse(user), nil
+	if user.ProfileComplete {
+		return newUserDataResponse(user), true, nil
+	} else {
+		return newPoorUserDataResponse(user), false, nil
+	}
+
 }
 
 func (u *UserService) DeleteUser(userID uint) error {
@@ -76,7 +81,11 @@ func (u *UserService) UpdatePassword(userID uint, password string) error {
 
 func newUserDataResponse(user *model.User) *dto.UserDataResponse {
 	return &dto.UserDataResponse{
-		Email:      user.Email,
+		PoorUserDataResponse: dto.PoorUserDataResponse{
+			Email:      user.Email,
+			SyncGoogle: user.GoogleID != nil,
+			SyncApple:  user.AppleID != nil,
+		},
 		FirstName:  *user.FirstName,
 		LastName:   *user.LastName,
 		SecondName: *user.SecondName,
@@ -85,8 +94,16 @@ func newUserDataResponse(user *model.User) *dto.UserDataResponse {
 			RegionID: *user.RegionID,
 			Name:     user.Region.Name,
 		},
-		SyncGoogle: user.GoogleID != nil,
-		SyncApple:  user.AppleID != nil,
+	}
+}
+
+func newPoorUserDataResponse(user *model.User) *dto.UserDataResponse {
+	return &dto.UserDataResponse{
+		PoorUserDataResponse: dto.PoorUserDataResponse{
+			Email:      user.Email,
+			SyncGoogle: user.GoogleID != nil,
+			SyncApple:  user.AppleID != nil,
+		},
 	}
 }
 

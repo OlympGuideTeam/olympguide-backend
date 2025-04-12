@@ -21,13 +21,17 @@ func NewUserHandler(userService service.IUserService) *UserHandler {
 func (h *UserHandler) GetUserData(c *gin.Context) {
 	userID, _ := c.MustGet(constants.ContextUserID).(uint)
 
-	user, err := h.userService.GetUserData(userID)
+	user, complete, err := h.userService.GetUserData(userID)
+
 	if err != nil {
 		errs.HandleError(c, err)
 		return
 	}
-
-	c.JSON(http.StatusOK, user)
+	if complete {
+		c.JSON(http.StatusOK, user)
+	} else {
+		c.JSON(http.StatusOK, user.PoorUserDataResponse)
+	}
 }
 
 // UpdateUser обновляет данные пользователя
