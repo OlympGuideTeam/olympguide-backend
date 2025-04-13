@@ -1,6 +1,7 @@
 # docker data
 data/
 
+api/docs/swagger.json
 # Environment files
 .env
 

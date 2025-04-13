@@ -245,3 +245,23 @@ func (u *UniverHandler) DislikeUniver(c *gin.Context) {
 		c.JSON(http.StatusOK, dto.MessageResponse{Message: constants.AlreadyDisliked})
 	}
 }
+
+func (u *UniverHandler) UploadUniverLogo(c *gin.Context) {
+	universityID := c.Param("id")
+
+	file, header, err := c.Request.FormFile("logo")
+	if err != nil {
+		errs.HandleError(c, errs.FailedToReadFile)
+		return
+	}
+	defer file.Close()
+
+	response, err := u.univerService.UploadLogo(universityID, file, header)
+
+	if err != nil {
+		errs.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}

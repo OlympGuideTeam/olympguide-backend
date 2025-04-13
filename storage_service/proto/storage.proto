@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package storage;
+
+option go_package = "github.com/your_username/storage_service/proto;storage";
+
+service StorageService {
+  rpc Upload(UploadRequest) returns (StorageResponse);
+  rpc Update(UpdateRequest) returns (StorageResponse);
+  rpc Delete(DeleteRequest) returns (StorageResponse);
+}
+
+message UploadRequest {
+  string university_id = 1;
+  bytes logo = 2;
+}
+
+message UpdateRequest {
+  string university_id = 1;
+  bytes logo = 2;
+}
+
+message DeleteRequest {
+  string university_id = 1;
+}
+
+message StorageResponse {
+  bool success = 1;
+  string message = 2;
+}

@@ -52,6 +52,37 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "${MINIO_API_PORT}:9000"
+      - "${MINIO_CONSOLE_PORT}:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: always
+
+  storage_service:
+    build:
+      context: ./storage_service
+      dockerfile: Dockerfile
+    container_name: storage_service
+    ports:
+      - ${STORAGE_SERVICE_PORT}:50051
+    environment:
+      - STORAGE_SERVICE_PORT=${STORAGE_SERVICE_PORT}
+      - MINIO_PORT=${MINIO_API_PORT}
+      - MINIO_HOST=minio
+      - MINIO_USER=${MINIO_ROOT_USER}
+      - MINIO_PASSWORD=${MINIO_ROOT_PASSWORD}
+    depends_on:
+      - minio
+    restart: on-failure
+
   email_service:
     build:
       context: ./email_service
@@ -105,6 +136,8 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - BEARER_DATA_LOADER_TOKEN=${BEARER_DATA_LOADER_TOKEN}
       - TOKEN_SECRET=${TOKEN_SECRET}
+      - STORAGE_SERVICE_HOST=storage_service
+      - STORAGE_SERVICE_PORT=${STORAGE_SERVICE_PORT}
     depends_on:
       - db
       - redis
@@ -142,3 +175,4 @@ volumes:
   postgres_data:
   redis_data:
   grafana_data:
+  minio_data:

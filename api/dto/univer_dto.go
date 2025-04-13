@@ -49,3 +49,8 @@ type UniverProgramTree struct {
 	Univer   UniversityProgramInfo  `json:"univer"`
 	Programs []ProgramShortResponse `json:"programs"`
 }
+
+type UniverLogoResponse struct {
+	URL  string `json:"url"`
+	Name string `json:"name"`
+}
