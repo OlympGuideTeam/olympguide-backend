@@ -27,6 +27,7 @@ type IUniverService interface {
 	LikeUniver(universityID string, userID uint) (bool, error)
 	DislikeUniver(universityID string, userID uint) (bool, error)
 	UploadLogo(universityID string, file multipart.File, header *multipart.FileHeader) (*dto.UniverLogoResponse, error)
+	DeleteLogo(universityID string) error
 }
 
 type UniverService struct {
@@ -239,6 +240,27 @@ func (u *UniverService) UploadLogo(universityID string, file multipart.File, hea
 		return nil, err
 	}
 	return &dto.UniverLogoResponse{URL: resp.Url, Name: resp.ObjectName}, nil
+}
+
+func (u *UniverService) DeleteLogo(universityID string) error {
+	univer, err := u.univerRepo.GetUniver(universityID, nil)
+	if err != nil {
+		return err
+	}
+
+	ext := filepath.Ext(univer.Logo)[1:]
+	req := &pb.DeleteLogoRequest{
+		UniversityId:  universityID,
+		FileExtension: ext,
+	}
+	_, err = u.storageServiceClient.DeleteLogo(context.Background(), req)
+	if err != nil {
+		return nil
+	}
+
+	univer.Logo = ""
+	err = u.univerRepo.UpdateUniver(univer)
+	return err
 }
 
 func newUniverModel(request *dto.UniversityRequest) *model.University {

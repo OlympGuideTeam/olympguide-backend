@@ -250,6 +250,7 @@ func (u *UniverHandler) UploadUniverLogo(c *gin.Context) {
 	universityID := c.Param("id")
 
 	file, header, err := c.Request.FormFile("logo")
+
 	if err != nil {
 		errs.HandleError(c, errs.FailedToReadFile)
 		return
@@ -264,4 +265,16 @@ func (u *UniverHandler) UploadUniverLogo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+func (u *UniverHandler) DeleteLogo(c *gin.Context) {
+	universityID := c.Param("id")
+
+	err := u.univerService.DeleteLogo(universityID)
+	if err != nil {
+		errs.HandleError(c, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
 }

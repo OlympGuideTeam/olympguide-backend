@@ -87,6 +87,12 @@ func (rt *Router) setupUniverRoutes() {
 		universityWithID := university.Group("/:id")
 		{
 			universityWithID.GET("/", rt.handlers.Univer.GetUniver)
+			universityWithID.POST("/logo",
+				rt.mw.RolesMiddleware(role.Founder, role.Admin),
+				rt.handlers.Univer.UploadUniverLogo)
+			universityWithID.DELETE("/logo",
+				rt.mw.RolesMiddleware(role.Founder, role.Admin),
+				rt.handlers.Univer.DeleteLogo)
 			universityWithID.GET("/faculties", rt.handlers.Faculty.GetFaculties)
 			universityWithID.GET("/programs/by-faculty", rt.handlers.Program.GetUniverProgramsWithFaculty)
 			universityWithID.GET("/programs/by-field", rt.handlers.Program.GetUniverProgramsWithGroup)
