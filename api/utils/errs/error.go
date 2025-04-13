@@ -68,6 +68,11 @@ var (
 	UniqueViolation     = AppError{409, "UniqueViolation", "Unique constraint violation", nil}
 )
 
+var (
+	FailedToReadFile    = AppError{400, "FailedToReadFile", "Failed to read file", nil}
+	StorageServiceError = AppError{500, "StorageServiceError", "Storage service error", nil}
+)
+
 func (e AppError) WithAdditional(data map[string]interface{}) AppError {
 	newError := e
 	newError.Details = data

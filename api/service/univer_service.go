@@ -3,8 +3,15 @@ package service
 import (
 	"api/dto"
 	"api/model"
+	pb "api/proto/gen"
 	"api/repository"
 	"api/utils/constants"
+	"api/utils/errs"
+	"bytes"
+	"context"
+	"io"
+	"mime/multipart"
+	"path/filepath"
 )
 
 type IUniverService interface {
@@ -19,19 +26,28 @@ type IUniverService interface {
 	DeleteUniver(universityID string) error
 	LikeUniver(universityID string, userID uint) (bool, error)
 	DislikeUniver(universityID string, userID uint) (bool, error)
+	UploadLogo(universityID string, file multipart.File, header *multipart.FileHeader) (*dto.UniverLogoResponse, error)
+	DeleteLogo(universityID string) error
 }
 
 type UniverService struct {
-	univerRepo  repository.IUniverRepo
-	regionRepo  repository.IRegionRepo
-	diplomaRepo repository.IDiplomaRepo
+	univerRepo           repository.IUniverRepo
+	regionRepo           repository.IRegionRepo
+	diplomaRepo          repository.IDiplomaRepo
+	storageServiceClient pb.StorageServiceClient
 }
 
 func NewUniverService(
 	univerRepo repository.IUniverRepo,
 	regionRepo repository.IRegionRepo,
-	diplomaRepo repository.IDiplomaRepo) *UniverService {
-	return &UniverService{univerRepo: univerRepo, regionRepo: regionRepo, diplomaRepo: diplomaRepo}
+	diplomaRepo repository.IDiplomaRepo,
+	storageServiceClient pb.StorageServiceClient) *UniverService {
+	return &UniverService{
+		univerRepo:           univerRepo,
+		regionRepo:           regionRepo,
+		diplomaRepo:          diplomaRepo,
+		storageServiceClient: storageServiceClient,
+	}
 }
 
 func (u *UniverService) GetUniver(universityID string, userID any) (*dto.UniversityResponse, error) {
@@ -190,6 +206,61 @@ func (u *UniverService) DislikeUniver(universityID string, userID uint) (bool, e
 	}
 	u.univerRepo.ChangeUniverPopularity(university, constants.LikeUniverPopularDecr)
 	return true, nil
+}
+
+func (u *UniverService) UploadLogo(universityID string, file multipart.File, header *multipart.FileHeader) (*dto.UniverLogoResponse, error) {
+	university, err := u.univerRepo.GetUniver(universityID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if _, err = io.Copy(buf, file); err != nil {
+		return nil, err
+	}
+
+	ext := filepath.Ext(header.Filename)[1:]
+	req := &pb.UploadLogoRequest{
+		UniversityId:  universityID,
+		FileData:      buf.Bytes(),
+		FileExtension: ext,
+	}
+
+	resp, err := u.storageServiceClient.UploadLogo(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Url == "" {
+		return nil, errs.StorageServiceError
+	}
+
+	university.Logo = resp.Url
+	err = u.univerRepo.UpdateUniver(university)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.UniverLogoResponse{URL: resp.Url, Name: resp.ObjectName}, nil
+}
+
+func (u *UniverService) DeleteLogo(universityID string) error {
+	univer, err := u.univerRepo.GetUniver(universityID, nil)
+	if err != nil {
+		return err
+	}
+
+	ext := filepath.Ext(univer.Logo)[1:]
+	req := &pb.DeleteLogoRequest{
+		UniversityId:  universityID,
+		FileExtension: ext,
+	}
+	_, err = u.storageServiceClient.DeleteLogo(context.Background(), req)
+	if err != nil {
+		return nil
+	}
+
+	univer.Logo = ""
+	err = u.univerRepo.UpdateUniver(univer)
+	return err
 }
 
 func newUniverModel(request *dto.UniversityRequest) *model.University {

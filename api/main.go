@@ -11,10 +11,12 @@ package main
 import (
 	"api/handler"
 	"api/middleware"
+	pb "api/proto/gen"
 	"api/repository"
 	"api/service"
 	"github.com/gin-contrib/sessions"
 	"github.com/go-redis/redis/v8"
+	"google.golang.org/grpc"
 	"gorm.io/gorm"
 	"log"
 
@@ -28,8 +30,8 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	db, rdb, store := initConnections(cfg)
-	handlers := initHandlers(db, rdb)
+	db, rdb, store, client := initConnections(cfg)
+	handlers := initHandlers(db, rdb, client)
 	mw := initMiddleware(db)
 	utils.RegisterMetrics()
 
@@ -37,14 +39,15 @@ func main() {
 	Router.Run(cfg.ServerPort)
 }
 
-func initConnections(cfg *utils.Config) (*gorm.DB, *redis.Client, sessions.Store) {
+func initConnections(cfg *utils.Config) (*gorm.DB, *redis.Client, sessions.Store, *grpc.ClientConn) {
 	db := utils.ConnectPostgres(cfg)
 	rdb := utils.ConnectRedis(cfg)
 	store := utils.ConnectSessionStore(cfg)
-	return db, rdb, store
+	client := utils.ConnectStorageService(cfg)
+	return db, rdb, store, client
 }
 
-func initHandlers(db *gorm.DB, redis *redis.Client) *handler.Handlers {
+func initHandlers(db *gorm.DB, redis *redis.Client, conn *grpc.ClientConn) *handler.Handlers {
 	codeRepo := repository.NewRedisCodeRepo(redis)
 	userRepo := repository.NewPgUserRepo(db)
 	regionRepo := repository.NewPgRegionRepo(db)
@@ -56,9 +59,11 @@ func initHandlers(db *gorm.DB, redis *redis.Client) *handler.Handlers {
 	diplomaRepo := repository.NewDiplomaRepo(db, redis)
 	benefitRepo := repository.NewPgBenefitRepo(db)
 
+	storageServiceClient := pb.NewStorageServiceClient(conn)
+
 	authService := service.NewAuthService(codeRepo, userRepo, regionRepo)
 	googleAuthService := service.NewExternalAuthService(userRepo, codeRepo)
-	univerService := service.NewUniverService(univerRepo, regionRepo, diplomaRepo)
+	univerService := service.NewUniverService(univerRepo, regionRepo, diplomaRepo, storageServiceClient)
 	fieldService := service.NewFieldService(fieldRepo)
 	olympService := service.NewOlympService(olympRepo)
 	metaService := service.NewMetaService(regionRepo, olympRepo, programRepo)
