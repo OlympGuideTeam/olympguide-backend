@@ -22,6 +22,7 @@ message UploadLogoResponse {
 
 message DeleteLogoRequest {
   string university_id = 1;
+  string file_extension = 2;
 }
 
 message DeleteLogoResponse {

@@ -24,6 +24,6 @@ func (h *LogoHandler) UploadLogo(ctx context.Context, req *pb.UploadLogoRequest)
 }
 
 func (h *LogoHandler) DeleteLogo(ctx context.Context, req *pb.DeleteLogoRequest) (*pb.DeleteLogoResponse, error) {
-	err := h.logoService.DeleteLogo(ctx, req.UniversityId)
+	err := h.logoService.DeleteLogo(ctx, req.UniversityId, req.FileExtension)
 	return &pb.DeleteLogoResponse{Success: err == nil}, err
 }

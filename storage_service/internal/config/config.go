@@ -2,11 +2,8 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
-
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -15,13 +12,10 @@ type Config struct {
 	MinioHost          string
 	MinioUser          string
 	MinioPassword      string
+	Host               string
 }
 
 func LoadConfig() (*Config, error) {
-	if err := godotenv.Load(); err != nil {
-		log.Println("Не удалось загрузить .env файл, будут использованы переменные окружения")
-	}
-
 	storageServicePortStr := os.Getenv("STORAGE_SERVICE_PORT")
 	storageServicePort, err := strconv.Atoi(storageServicePortStr)
 	if err != nil {
@@ -31,7 +25,7 @@ func LoadConfig() (*Config, error) {
 	minioPortStr := os.Getenv("MINIO_PORT")
 	minioPort, err := strconv.Atoi(minioPortStr)
 	if err != nil {
-		return nil, fmt.Errorf("invalid MINIO_API_PORT: %w", err)
+		return nil, fmt.Errorf("invalid MINIO_PORT: %w", err)
 	}
 
 	return &Config{
@@ -39,6 +33,7 @@ func LoadConfig() (*Config, error) {
 		MinioUser:          os.Getenv("MINIO_USER"),
 		MinioPassword:      os.Getenv("MINIO_PASSWORD"),
 		MinioHost:          os.Getenv("MINIO_HOST"),
+		Host:               os.Getenv("PUBLIC_HOST"),
 		MinioPort:          minioPort,
 	}, nil
 }

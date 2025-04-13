@@ -136,6 +136,7 @@ func (x *UploadLogoResponse) GetUrl() string {
 type DeleteLogoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UniversityId  string                 `protobuf:"bytes,1,opt,name=university_id,json=universityId,proto3" json:"university_id,omitempty"`
+	FileExtension string                 `protobuf:"bytes,2,opt,name=file_extension,json=fileExtension,proto3" json:"file_extension,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -173,6 +174,13 @@ func (*DeleteLogoRequest) Descriptor() ([]byte, []int) {
 func (x *DeleteLogoRequest) GetUniversityId() string {
 	if x != nil {
 		return x.UniversityId
+	}
+	return ""
+}
+
+func (x *DeleteLogoRequest) GetFileExtension() string {
+	if x != nil {
+		return x.FileExtension
 	}
 	return ""
 }
@@ -233,9 +241,10 @@ const file_proto_storage_proto_rawDesc = "" +
 	"\x12UploadLogoResponse\x12\x1f\n" +
 	"\vobject_name\x18\x01 \x01(\tR\n" +
 	"objectName\x12\x10\n" +
-	"\x03url\x18\x02 \x01(\tR\x03url\"8\n" +
+	"\x03url\x18\x02 \x01(\tR\x03url\"_\n" +
 	"\x11DeleteLogoRequest\x12#\n" +
-	"\runiversity_id\x18\x01 \x01(\tR\funiversityId\".\n" +
+	"\runiversity_id\x18\x01 \x01(\tR\funiversityId\x12%\n" +
+	"\x0efile_extension\x18\x02 \x01(\tR\rfileExtension\".\n" +
 	"\x12DeleteLogoResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess2\x9e\x01\n" +
 	"\x0eStorageService\x12E\n" +

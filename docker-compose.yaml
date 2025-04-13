@@ -79,6 +79,7 @@ services:
       - MINIO_HOST=minio
       - MINIO_USER=${MINIO_ROOT_USER}
       - MINIO_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - PUBLIC_HOST=${HOST}
     depends_on:
       - minio
     restart: on-failure

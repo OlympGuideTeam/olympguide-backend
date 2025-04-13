@@ -8,7 +8,7 @@ import (
 
 type ILogoService interface {
 	UploadLogo(ctx context.Context, universityID string, data []byte, ext string) (string, string, error)
-	DeleteLogo(ctx context.Context, universityID string) error
+	DeleteLogo(ctx context.Context, universityID string, ext string) error
 }
 
 type LogoService struct {
@@ -20,22 +20,17 @@ func NewLogoService(repo repository.ILogoRepository) *LogoService {
 }
 
 func (s *LogoService) UploadLogo(ctx context.Context, universityID string, data []byte, ext string) (string, string, error) {
-	objectName := fmt.Sprintf("logos/%s.%s", universityID, ext)
+	objectName := fmt.Sprintf("logo-%s.%s", universityID, ext)
 	contentType := "image/" + ext
 
-	url, err := s.logoRepo.Upload(ctx, objectName, data, contentType, ext)
+	url, err := s.logoRepo.Upload(ctx, objectName, data, contentType)
 	if err != nil {
 		return "", "", err
 	}
 	return objectName, url, nil
 }
 
-func (s *LogoService) DeleteLogo(ctx context.Context, universityID string) error {
-	objectName := fmt.Sprintf("logos/%s", universityID)
-	ext, err := s.logoRepo.GetFileExtension(ctx, objectName)
-	if err != nil {
-		return err
-	}
-	objectNameWithExt := fmt.Sprintf("%s.%s", objectName, ext)
-	return s.logoRepo.Delete(ctx, objectNameWithExt)
+func (s *LogoService) DeleteLogo(ctx context.Context, universityID string, ext string) error {
+	objectName := fmt.Sprintf("logo-%s.%s", universityID, ext)
+	return s.logoRepo.Delete(ctx, objectName)
 }
