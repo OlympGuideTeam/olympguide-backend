@@ -62,7 +62,7 @@ func (s *ExternalAuthService) GoogleAuth(token string) (*model.User, error) {
 
 func (s *ExternalAuthService) AppleAuth(token string) (*model.User, error) {
 	clientID := "sundayti.olympguide"
-	tokenPayload, err := validateAppleIDToken(clientID, token)
+	tokenPayload, err := validateAppleIDToken(token, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (s *ExternalAuthService) findOrCreateAppleUser(tokenPayload *AppleIDTokenPa
 
 	newUser := &model.User{
 		Email:        tokenPayload.Email,
-		GoogleID:     &tokenPayload.Sub,
+		AppleID:      &tokenPayload.Sub,
 		PasswordHash: hashPassword,
 	}
 
