@@ -131,7 +131,7 @@ def process_diploma_loader(topic, message):
         birthday = data["birthday"].split('.')
         diplomas = []
         current_date = int(datetime.datetime.now().strftime('%Y'))
-        for i in range(3):
+        for i in range(constants.DIPLOMA_YEAR):
             new_diplomas = get_diplomas(
                 data['last_name'],
                 data['first_name'],
